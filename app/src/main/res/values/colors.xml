@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+    <color name="primary">#1565c0</color>
+    <color name="primary_dark">#0d47a1</color>
+    <color name="primary_darker">#1A237E</color>
+    <color name="primary_medium_light">#2196F3</color>
+    <color name="primary_light">#90caf9</color>
+    <color name="white_button_translucent">#B3FFFFFF</color>
+    <color name="accent">#4CAF50</color>
+    <color name="accent_dark">#2e7d32</color>
+    <color name="accent_light">#C8E6C9</color>
+    <color name="accent_darker">#1b5e20</color>
+    <color name="hint">#42000000</color>
+    <color name="secondary_text">#8A000000</color>
+    <color name="text_white">#FFFFFF</color>
+    <color name="text_black">#DE000000</color>
+
+    <integer-array name="custom_theme">
+        <item>@color/accent_darker</item>
+        <item>@color/accent_dark</item>
+        <item>@color/accent</item>
+        <item>@color/primary_dark</item>
+    </integer-array>
+
+    <color name="purple_darker">#4527a0</color>
+    <color name="purple_dark">#512da8</color>
+    <color name="purple_light">#D1C4E9</color>
+    <color name="purple_main">#673AB7</color>
+
+    <color name="red_main">#f44336</color>
+    <color name="red_light">#ffcdd2</color>
+
+
+</resources>

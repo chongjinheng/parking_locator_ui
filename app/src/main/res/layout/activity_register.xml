@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:id="@+id/container"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:background="@color/primary">
+
+    <ImageButton
+        android:id="@+id/dropdown_arrow_register"
+        android:layout_marginTop="10dp"
+        android:background="@android:color/transparent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_arrow_drop_down"/>
+
+    <RelativeLayout
+        android:id="@+id/register_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clickable="true"
+        android:focusable="true"
+        android:focusableInTouchMode="true">
+
+        <TextView
+            android:id="@+id/register_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:textSize="48sp"
+            android:text="@string/register"
+            android:fontFamily="sans-serif-thin"
+            android:textColor="@android:color/white"/>
+
+        <ImageView
+            android:id="@+id/register_logo"
+            android:layout_marginTop="15dp"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:layout_centerHorizontal="true"
+            android:layout_below="@id/register_title"
+            android:src="@drawable/ic_register_logo"/>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_marginTop="15dp"
+            android:layout_height="match_parent"
+            android:layout_below="@id/register_logo"
+            android:layout_marginStart="30dp"
+            android:layout_marginEnd="30dp">
+
+            <TextView
+                android:id="@+id/register_tag_line"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:fontFamily="sans-serif-thin"
+                android:textColor="@android:color/white"
+                android:text="@string/register_info"
+                android:textSize="18sp"/>
+
+            <TextView
+                android:id="@+id/register_tag_line2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/register_tag_line"
+                android:layout_centerHorizontal="true"
+                android:layout_centerVertical="true"
+                android:paddingTop="2dp"
+                android:fontFamily="sans-serif-thin"
+                android:textColor="@android:color/white"
+                android:text="@string/register_info2"
+                android:textSize="18sp"/>
+
+
+            <EditText
+                android:id="@+id/email_register"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_white_box"
+                android:layout_marginBottom="5dp"
+                android:layout_marginTop="20dp"
+                android:padding="7dp"
+                android:layout_below="@id/register_tag_line2"
+                android:editable="true"
+                android:hint="Email"
+                android:inputType="textEmailAddress"
+                android:textColorHint="@color/hint"
+                android:textColor="@color/text_black"
+                android:paddingTop="2dp"/>
+
+            <TextView
+                android:id="@+id/email_validator_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/email_register"
+                android:layout_marginBottom="5dp"
+                android:textSize="14sp"/>
+
+            <EditText
+                android:id="@+id/password_register"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_white_box"
+                android:layout_below="@id/email_validator_text"
+                android:layout_marginBottom="5dp"
+                android:padding="7dp"
+                android:hint="Password"
+                android:inputType="textPassword"
+                android:textColorHint="@color/hint"
+                android:textColor="@color/text_black"
+                android:paddingTop="2dp"/>
+
+            <TextView
+                android:id="@+id/password_validator_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/password_register"
+                android:layout_marginBottom="5dp"
+                android:textSize="14sp"/>
+
+            <EditText
+                android:id="@+id/password_register_repeat"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_white_box"
+                android:layout_below="@id/password_validator_text"
+                android:layout_marginBottom="5dp"
+                android:padding="7dp"
+                android:hint="Repeat Password"
+                android:inputType="textPassword"
+                android:textColorHint="@color/hint"
+                android:textColor="@color/text_black"
+                android:paddingTop="2dp"/>
+
+            <TextView
+                android:id="@+id/password_repeat_validator_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/password_register_repeat"
+                android:layout_marginBottom="5dp"
+                android:textSize="14sp"/>
+
+
+            <com.dd.processbutton.iml.ActionProcessButton
+                xmlns:custom="http://schemas.android.com/apk/res-auto"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginTop="20dp"
+                android:layout_below="@id/password_repeat_validator_text"
+                android:layout_centerInParent="true"
+                android:text="@string/register_now"
+                android:textSize="16sp"
+                android:textColor="@color/text_white"
+                android:onClick="registerButtonClicked"
+                custom:pb_colorComplete="@color/green_complete"
+                custom:pb_colorNormal="@color/primary_medium_light"
+                custom:pb_colorPressed="@color/primary_dark"
+                custom:pb_colorProgress="@color/purple_progress"
+                custom:pb_textComplete="Success"
+                custom:pb_textProgress="Loading"
+                custom:pb_textError="Error"
+                custom:pb_colorError="@color/red_error"
+                android:id="@+id/button_register"/>
+
+            <Button
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginTop="20dp"
+                android:layout_below="@id/password_repeat_validator_text"
+                android:layout_centerInParent="true"
+                android:text="@string/register_now"
+                android:textSize="16sp"
+                android:textColor="@color/text_white"
+                android:background="@drawable/bg_button_translucent"
+                android:alpha="0.0"
+                android:id="@+id/button_register_disabled"/>
+
+        </RelativeLayout>
+
+    </RelativeLayout>
+
+</LinearLayout>
