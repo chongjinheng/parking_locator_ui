@@ -32,31 +32,35 @@ public class HomeActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Fragment fragment = new HomeFragment(R.layout.fragment_home);
+        Fragment fragment = HomeFragment.newInstance(R.layout.fragment_home);
         FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
         fragmentTransaction.replace(R.id.container, fragment);
         fragmentTransaction.commit();
 
     }
 
-    private class HomeFragment extends Fragment implements LocationListener {
+    public static class HomeFragment extends Fragment implements LocationListener {
 
         private static final String TAG = "HomeFragment";
-        private int layout;
         private GoogleMap map;
         private Location location;
         private LocationManager locationManager;
         private String locationProvider;
         private AlertDialog errorDialog;
 
-        public HomeFragment(int layout) {
-            this.layout = layout;
+        public static HomeFragment newInstance(int layout) {
+            HomeFragment classInstance = new HomeFragment();
+            Bundle args = new Bundle();
+            args.putInt("layout", layout);
+            classInstance.setArguments(args);
+
+            return classInstance;
         }
 
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
-            View view = inflater.inflate(layout, container, false);
+            View view = inflater.inflate(getArguments().getInt("layout"), container, false);
 
             if (map == null) {
                 map = ((MapFragment) getFragmentManager().findFragmentById(R.id.map)).getMap();
@@ -106,7 +110,7 @@ public class HomeActivity extends BaseActivity {
         //----------------------------------------
         private void initializeLocationManager() {
 
-            locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+            locationManager = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
 
             locationProvider = LocationManager.NETWORK_PROVIDER;
             location = locationManager.getLastKnownLocation(locationProvider);
