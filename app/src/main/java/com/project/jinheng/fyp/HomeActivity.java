@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
@@ -21,16 +22,43 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.melnykov.fab.FloatingActionButton;
+import com.project.jinheng.fyp.classes.APIUtils;
+import com.project.jinheng.fyp.classes.JSONDTO;
+import com.project.jinheng.fyp.classes.Lot;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.StatusLine;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by JinHeng on 11/3/2014.
  */
 public class HomeActivity extends BaseActivity {
 
+    private final String TAG = "HomeActivity";
+    private static List<Lot> parkingLots = new ArrayList<>();
+    private static List<Marker> markers = new ArrayList<>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+//        new MarkerAsyncTask().execute(); //todo the api url for the server here
 
         Fragment fragment = HomeFragment.newInstance(R.layout.fragment_home);
         FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
@@ -103,6 +131,8 @@ public class HomeActivity extends BaseActivity {
             map.getUiSettings().setTiltGesturesEnabled(false);
             map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
             map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(2.923218, 101.642023), 14.0f));
+            initializeMarkers();
+            Log.d(TAG, "map initialized");
         }
 
         //----------------------------------------
@@ -157,6 +187,18 @@ public class HomeActivity extends BaseActivity {
             }
         }
 
+        //----------------------------------------
+        //	Initializing map markers
+        //----------------------------------------
+        public void initializeMarkers() {
+
+//            for (Lot lot : parkingLots) {
+//                Marker marker = map.addMarker(new MarkerOptions().position(new LatLng(Double.valueOf(lot.getLatitute()), Double.valueOf(lot.getLongitute()))));
+//                markers.add(marker);
+//            }
+
+        }
+
         @Override
         public void onProviderEnabled(String arg0) {
             Log.i("called", "onProviderEnabled");
@@ -183,4 +225,43 @@ public class HomeActivity extends BaseActivity {
 
     }
 
+//    public class MarkerAsyncTask extends AsyncTask<String, Void, Boolean> {
+
+//        @Override
+//        protected Boolean doInBackground(String... params) {
+//
+//            try {
+//                HttpClient client = new DefaultHttpClient();
+//                HttpPost post = new HttpPost(APIUtils.APIURL);
+//                JSONDTO requestJSONObj = new JSONDTO();
+//                requestJSONObj.setServiceName(APIUtils.GET_MARKER);
+//                String requestJSONString = APIUtils.toJson(requestJSONObj);
+//
+//                //Prepare json to send with httppost
+//                post.setEntity(new StringEntity(requestJSONString, "UTF-8"));
+//                //Setup header types needed to transfer JSON
+//                post.setHeader("Content-Type", "application/json");
+//                post.setHeader("Accept-Encoding", "application/json");
+//                post.setHeader("Accept-Language", "en-US");
+//
+//                HttpResponse response = client.execute(post);
+//                Log.d(TAG, "getting data from server......");
+//
+//                StatusLine statusLine = response.getStatusLine();
+//                if (statusLine.getStatusCode() == HttpStatus.SC_OK) {
+//                    HttpEntity entity = response.getEntity();
+//                    String data = EntityUtils.toString(entity);
+//
+//                    Log.d(TAG + "MarkerAsync:\nJSON sent from server: {}", data);
+//
+//                }
+//
+//            } catch (IOException e) {
+//                //TODO auto generated stub
+//                e.printStackTrace();
+//            }
+//            return null;
+//
+//        }
+//    }
 }

@@ -29,7 +29,6 @@ import android.widget.TextView;
 
 import com.dd.processbutton.iml.ActionProcessButton;
 import com.project.jinheng.fyp.classes.ErrorStatus;
-import com.project.jinheng.fyp.classes.LoginUtils;
 import com.project.jinheng.fyp.classes.MyException;
 
 import java.security.MessageDigest;
@@ -143,38 +142,26 @@ public class RegisterActivity extends Activity {
         boolean registerSuccess = true;
         //process login
         if (registerSuccess) {
-            try {
-                if (email.getText() != null && password.getText() != null && !TextUtils.isEmpty(email.getText()) && !TextUtils.isEmpty(password.getText())) {
-                    boolean loginSuccess = LoginUtils.proceesLogin(email.getText().toString(), password.getText().toString());
-                    if (loginSuccess) {
-                        //let the app remember user have logged in
-                        SharedPreferences settings = getSharedPreferences(SplashScreen.PREFS_NAME, 0);
-                        SharedPreferences.Editor editor = settings.edit();
-                        editor.putBoolean("LoggedIn", true);
-                        editor.apply();
-
-                        startActivity(intent);
-                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                        overridePendingTransition(R.anim.zoom_in, R.anim.zoom_out);
-                        finish();
-                    } else
-                        throw new MyException(ErrorStatus.LOGIN_ERROR, ErrorStatus.LOGIN_ERROR.getErrorMessage());
-                }
-            } catch (MyException e) {
-                AlertDialog error = new AlertDialog.Builder(this).create();
-                error.setTitle(e.getError().getName());
-                error.setMessage(e.getMessage());
-                error.setInverseBackgroundForced(true);
-                error.setButton(DialogInterface.BUTTON_NEUTRAL, "OK", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-//                    TODO don't know what to do here
-                    }
-                });
-                error.show();
-            }
+//            try {
+//                if (email.getText() != null && password.getText() != null && !TextUtils.isEmpty(email.getText()) && !TextUtils.isEmpty(password.getText())) {
+//
+//                } else
+//
+//            }
+//        }catch(MyException e){
+//            AlertDialog error = new AlertDialog.Builder(this).create();
+//            error.setTitle(e.getError().getName());
+//            error.setMessage(e.getMessage());
+//            error.setInverseBackgroundForced(true);
+//            error.setButton(DialogInterface.BUTTON_NEUTRAL, "OK", new DialogInterface.OnClickListener() {
+//                @Override
+//                public void onClick(DialogInterface dialog, int which) {
+////                    TODO don't know what to do here
+//                }
+//            });
+//            error.show();
         }
-
     }
 
 }
+
