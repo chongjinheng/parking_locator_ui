@@ -15,7 +15,9 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.StatusLine;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.conn.HttpHostConnectException;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
@@ -24,6 +26,7 @@ import java.io.IOError;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Created by JinHeng on 11/18/2014.
@@ -141,6 +144,8 @@ public class APIUtils {
         } catch (IllegalArgumentException e) {
             Log.e(TAG, e.getMessage());
             e.printStackTrace();
+        } catch (HttpHostConnectException e) {
+            throw new MyException(ErrorStatus.APPLICATION_SYSTEM_DOWN.getName(), ErrorStatus.APPLICATION_SYSTEM_DOWN.getErrorMessage());
         } catch (Exception e) {
             Log.e(TAG, e.getMessage());
             e.printStackTrace();

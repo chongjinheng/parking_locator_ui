@@ -1,10 +1,8 @@
 package com.project.jinheng.fyp;
 
 import android.app.Activity;
-import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -46,7 +44,9 @@ public class LoginActivity extends Activity {
     private ProgressDialog progressDialog;
     private Integer loginModeFromServer;
     private Boolean isActivityRunning;
-    private String FBID;
+    private String facebookUID; //save into preference
+    private String loginEmail; //save into preference
+    private String facebookUserName; //save into preference
 
     private Session.StatusCallback callback = new Session.StatusCallback() {
         @Override
@@ -87,11 +87,7 @@ public class LoginActivity extends Activity {
                 @Override
                 protected void onPreExecute() {
                     //TODO change to a nicer dialog
-                    progressDialog = new ProgressDialog(LoginActivity.this);
-                    progressDialog.setTitle("Logging in");
-                    progressDialog.setMessage("Please wait");
-                    progressDialog.setCancelable(false);
-                    progressDialog.setIndeterminate(true);
+                    progressDialog = MyProgressDialog.initiate(LoginActivity.this);
                     progressDialog.show();
                 }
 
@@ -105,17 +101,27 @@ public class LoginActivity extends Activity {
                         public void onCompleted(GraphUser graphUser, Response response) {
                             if (requestSession == Session.getActiveSession() && graphUser != null) {
                                 Log.i("Facebook", "User ID found " + graphUser.getId());
-                                FBID = graphUser.getId();
+                                facebookUID = graphUser.getId();
+                                facebookUserName = graphUser.getName();
                             }
                         }
                     });
                     request.executeAndWait();
 
+                    if (exception != null) {
+                        JSONDTO returnDTO = new JSONDTO();
+                        Log.e(TAG, "Exception occurred when logging into Facebook");
+                        JSONError error = new JSONError("Facebook login exception", exception.getMessage());
+                        returnDTO.setError(error);
+                        return returnDTO;
+                    }
+
                     JSONDTO jsonFromServer, tempDTO;
                     try {
                         //because now only we get facebook username to call the api
                         tempDTO = params[0];
-                        tempDTO.setFacebookUID(FBID);
+                        tempDTO.setFacebookUID(facebookUID);
+                        tempDTO.setName(facebookUserName);
                         jsonFromServer = APIUtils.processAPICalls(tempDTO);
                         return jsonFromServer;
 
@@ -155,7 +161,6 @@ public class LoginActivity extends Activity {
                             if (loginStatus) {
                                 saveLoginState();
                                 Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
-                                intent.putExtra("username", jsondto.getName());
                                 Log.d(TAG, "Facebook login successful, displaying home activity");
                                 startActivity(intent);
                                 overridePendingTransition(R.anim.right_to_left_in, R.anim.fade_out);
@@ -206,6 +211,7 @@ public class LoginActivity extends Activity {
             //build json object to process login
             JSONDTO dataToProcess = new JSONDTO();
             dataToProcess.setServiceName(APIUtils.FB_LOGIN);
+            dataToProcess.setName(facebookUserName);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
                 loginAPICall.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, dataToProcess);
             } else {
@@ -229,8 +235,8 @@ public class LoginActivity extends Activity {
             EditText passwordEditText = (EditText) findViewById(R.id.password_login);
             //process login
             if (emailEditText.getText() != null && passwordEditText.getText() != null && !TextUtils.isEmpty(emailEditText.getText()) && !TextUtils.isEmpty(passwordEditText.getText())) {
-                String email = emailEditText.getText().toString().trim();
-                String password = passwordEditText.getText().toString().trim();
+                final String email = emailEditText.getText().toString().trim();
+                final String password = passwordEditText.getText().toString().trim();
 
                 //check for input pattern
                 if (!Validators.validateEmail(email)) {
@@ -247,11 +253,7 @@ public class LoginActivity extends Activity {
                     @Override
                     protected void onPreExecute() {
                         //TODO change to a nicer dialog
-                        progressDialog = new ProgressDialog(LoginActivity.this);
-                        progressDialog.setTitle("Logging in");
-                        progressDialog.setMessage("Please wait");
-                        progressDialog.setCancelable(false);
-                        progressDialog.setIndeterminate(true);
+                        progressDialog = MyProgressDialog.initiate(LoginActivity.this);
                         progressDialog.show();
                     }
 
@@ -270,6 +272,7 @@ public class LoginActivity extends Activity {
                             return returnDTO;
                         } catch (Exception e) {
                             JSONDTO returnDTO = new JSONDTO();
+                            e.printStackTrace();
                             Log.e(TAG, "Exception occurred when calling API");
                             JSONError error = new JSONError(ErrorStatus.ACCESS_DENIED.getName(), ErrorStatus.ACCESS_DENIED.getErrorMessage());
                             returnDTO.setError(error);
@@ -306,6 +309,7 @@ public class LoginActivity extends Activity {
                                 }
 
                                 if (loginStatus) {
+                                    loginEmail = email;
                                     saveLoginState();
                                     Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
                                     startActivity(intent);
@@ -377,6 +381,19 @@ public class LoginActivity extends Activity {
         SharedPreferences settings = getSharedPreferences(SplashScreen.PREFS_NAME, 0);
         SharedPreferences.Editor editor = settings.edit();
         editor.putBoolean("LoggedIn", true);
+        if (facebookUID != null) {
+            editor.putBoolean("facebookLog", true);
+            editor.putString("facebookUID", facebookUID);
+            editor.putString("name", facebookUserName);
+        }
+        if (loginEmail != null) {
+            editor.putBoolean("facebookLog", false);
+            editor.putString("email", loginEmail);
+            String[] splitEmail = loginEmail.split("@");
+            String name = splitEmail[0];
+            editor.putString("name", name);
+        }
+
         editor.apply();
     }
 

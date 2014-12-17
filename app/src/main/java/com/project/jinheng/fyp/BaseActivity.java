@@ -127,9 +127,9 @@ public abstract class BaseActivity extends ActionBarActivity implements android.
         searchView.setOnQueryTextFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
-                if(!hasFocus){
+                if (!hasFocus) {
                     searchItem.collapseActionView();
-                    searchView.setQuery("",false);
+                    searchView.setQuery("", false);
                 }
             }
         });
@@ -146,7 +146,6 @@ public abstract class BaseActivity extends ActionBarActivity implements android.
     protected boolean isAlwaysExpanded() {
         return false;
     }
-
 
     public void logoutButtonClicked(Context context) {
         Session session = Session.getActiveSession();
