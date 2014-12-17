@@ -1,8 +1,10 @@
 package com.project.jinheng.fyp;
 
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -43,6 +45,7 @@ public class LoginActivity extends Activity {
     private UiLifecycleHelper uiHelper;
     private ProgressDialog progressDialog;
     private Integer loginModeFromServer;
+    private Boolean isActivityRunning;
     private String FBID;
 
     private Session.StatusCallback callback = new Session.StatusCallback() {
@@ -140,11 +143,11 @@ public class LoginActivity extends Activity {
                         } else {
                             Boolean loginStatus = false;
 
-                            if (jsondto.getLoginMode() == null || jsondto.getName() == null) {
+                            if (jsondto.getLoginMode() == null || !jsondto.getServiceName().equals(APIUtils.FB_LOGIN)) {
                                 Log.e(TAG, "no login mode or username is null");
                                 throw new MyException(ErrorStatus.ACCESS_DENIED.getName(), ErrorStatus.ACCESS_DENIED.getErrorMessage());
                             } else {
-                                if (jsondto.getLoginMode() == 0) {
+                                if (jsondto.getLoginMode() == 2) {
                                     loginStatus = true;
                                 }
                             }
@@ -168,6 +171,11 @@ public class LoginActivity extends Activity {
                         }
 
                     } catch (MyException e) {
+
+                        if (progressDialog != null) {
+                            progressDialog.dismiss();
+                        }
+
                         AlertDialog error = new AlertDialog.Builder(LoginActivity.this).create();
                         error.requestWindowFeature(Window.FEATURE_NO_TITLE);
                         error.setMessage(e.getMessage());
@@ -180,10 +188,16 @@ public class LoginActivity extends Activity {
                         });
                         error.show();
 
-                        if (progressDialog != null) {
-                            progressDialog.dismiss();
+                        Session session = Session.getActiveSession();
+                        if (session != null) {
+                            if (!session.isClosed()) {
+                                session.closeAndClearTokenInformation();
+                            }
+                        } else {
+                            session = new Session(LoginActivity.this);
+                            Session.setActiveSession(session);
+                            session.closeAndClearTokenInformation();
                         }
-
                     }
                 }
             };
@@ -202,8 +216,10 @@ public class LoginActivity extends Activity {
 
         {
             System.out.println("invoked close");
-            Intent intent = new Intent(this, LoginActivity.class);
-            startActivity(intent);
+            if (!isActivityRunning) {
+                Intent intent = new Intent(this, LoginActivity.class);
+                startActivity(intent);
+            }
         }
     }
 
@@ -217,10 +233,6 @@ public class LoginActivity extends Activity {
                 String password = passwordEditText.getText().toString().trim();
 
                 //check for input pattern
-                if (email == "" || password == "") {
-                    Log.e(TAG, "info is not sufficient");
-                    throw new MyException(ErrorStatus.NO_INFO.getName(), ErrorStatus.NO_INFO.getErrorMessage());
-                }
                 if (!Validators.validateEmail(email)) {
                     Log.e(TAG, "email style error");
                     throw new MyException(ErrorStatus.EMAIL_STYLE_ERROR.getName(), ErrorStatus.EMAIL_STYLE_ERROR.getErrorMessage());
@@ -341,6 +353,9 @@ public class LoginActivity extends Activity {
                 } else {
                     loginAPICall.execute(dataToProcess);
                 }
+            } else {
+                Log.e(TAG, "info is not sufficient");
+                throw new MyException(ErrorStatus.NO_INFO.getName(), ErrorStatus.NO_INFO.getErrorMessage());
             }
         } catch (MyException e) {
             AlertDialog error = new AlertDialog.Builder(LoginActivity.this).create();
@@ -380,22 +395,31 @@ public class LoginActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        isActivityRunning = true;
         uiHelper.onResume();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+        isActivityRunning = false;
         uiHelper.onPause();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        isActivityRunning = false;
         if (progressDialog != null) {
             progressDialog.dismiss();
         }
         uiHelper.onDestroy();
+    }
+
+    @Override
+    protected void onStart() {
+        isActivityRunning = true;
+        super.onStart();
     }
 
     @Override
