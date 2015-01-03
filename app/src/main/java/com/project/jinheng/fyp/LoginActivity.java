@@ -86,7 +86,6 @@ public class LoginActivity extends Activity {
 
                 @Override
                 protected void onPreExecute() {
-                    //TODO change to a nicer dialog
                     progressDialog = MyProgressDialog.initiate(LoginActivity.this);
                     progressDialog.show();
                 }
@@ -252,7 +251,6 @@ public class LoginActivity extends Activity {
 
                     @Override
                     protected void onPreExecute() {
-                        //TODO change to a nicer dialog
                         progressDialog = MyProgressDialog.initiate(LoginActivity.this);
                         progressDialog.show();
                     }

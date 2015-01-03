@@ -1,7 +1,5 @@
 package com.project.jinheng.fyp.classes;
 
-import java.math.BigDecimal;
-
 /**
  * Created by JinHeng on 12/16/2014.
  */
@@ -10,8 +8,8 @@ public class Lot {
     private Integer id;
     private String lotName;
     private String lotType;
-    private String longitute;
-    private String latitute;
+    private Double longitude;
+    private Double latitude;
     private String address;
     private String operationHour;
     private Long capacity;
@@ -41,20 +39,20 @@ public class Lot {
         this.lotType = lotType;
     }
 
-    public String getLongitute() {
-        return longitute;
+    public Double getLongitude() {
+        return longitude;
     }
 
-    public void setLongitute(String longitute) {
-        this.longitute = longitute;
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
     }
 
-    public String getLatitute() {
-        return latitute;
+    public Double getLatitude() {
+        return latitude;
     }
 
-    public void setLatitute(String latitute) {
-        this.latitute = latitute;
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
     }
 
     public String getAddress() {

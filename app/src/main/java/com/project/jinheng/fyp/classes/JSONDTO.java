@@ -15,6 +15,55 @@ public class JSONDTO {
     private Integer loginMode;
     private JSONError error;
 
+    /**
+     * * Maps ***
+     */
+    private Double latitude;
+    private Double longitude;
+    private List<Lot> parkingLots;
+    private String groupType;
+    private String criteria;
+
+    public String getGroupType() {
+        return groupType;
+    }
+
+    public void setGroupType(String groupType) {
+        this.groupType = groupType;
+    }
+
+    public String getCriteria() {
+        return criteria;
+    }
+
+    public void setCriteria(String criteria) {
+        this.criteria = criteria;
+    }
+
+    public List<Lot> getParkingLots() {
+        return parkingLots;
+    }
+
+    public void setParkingLots(List<Lot> parkingLots) {
+        this.parkingLots = parkingLots;
+    }
+
+    public Double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
+    }
+
+    public Double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
+    }
+
     public String getServiceName() {
         return serviceName;
     }

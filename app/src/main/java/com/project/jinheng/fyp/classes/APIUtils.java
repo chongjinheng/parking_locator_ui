@@ -34,12 +34,12 @@ import java.util.concurrent.TimeoutException;
 public class APIUtils {
 
     private static String TAG = "API";
-    public static final String APIURL = "http://192.168.1.2:8080/";
+    public static final String APIURL = "http://192.168.1.3:8080/";
 
     //Service names
     public static final String LOGIN = "LOGIN";
     public static final String FB_LOGIN = "FB_LOGIN";
-    public static final String GET_MARKER = "GET_MARKER";
+    public static final String GET_PARKING_LOTS = "GET_PARKING_LOTS";
 
     public static String facebookPrintKeyHash(Activity context) {
         PackageInfo packageInfo;

@@ -3,19 +3,25 @@ package com.project.jinheng.fyp;
 import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -26,24 +32,16 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.melnykov.fab.FloatingActionButton;
 import com.project.jinheng.fyp.classes.APIUtils;
+import com.project.jinheng.fyp.classes.ErrorStatus;
 import com.project.jinheng.fyp.classes.JSONDTO;
+import com.project.jinheng.fyp.classes.JSONError;
 import com.project.jinheng.fyp.classes.Lot;
-
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.StatusLine;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.util.EntityUtils;
-import org.json.JSONObject;
+import com.project.jinheng.fyp.classes.MyException;
 
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Created by JinHeng on 11/3/2014.
@@ -51,8 +49,6 @@ import java.util.List;
 public class HomeActivity extends BaseActivity {
 
     private final String TAG = "HomeActivity";
-    private static List<Lot> parkingLots = new ArrayList<>();
-    private static List<Marker> markers = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,12 +65,18 @@ public class HomeActivity extends BaseActivity {
 
     public static class HomeFragment extends Fragment implements LocationListener {
 
+        public static List<Marker> globalMarkerList;
+
         private static final String TAG = "HomeFragment";
         private GoogleMap map;
         private Location location;
         private LocationManager locationManager;
         private String locationProvider;
         private AlertDialog errorDialog;
+        private ProgressDialog progressDialog;
+        private List<Lot> parkingLots = new ArrayList<Lot>();
+        private boolean asyncRunning = false;
+        private boolean markerLoaded = false;
 
         public static HomeFragment newInstance(int layout) {
             HomeFragment classInstance = new HomeFragment();
@@ -100,8 +102,8 @@ public class HomeActivity extends BaseActivity {
             initializeMap();
             initializeLocationManager();
 
-            FloatingActionButton fab = (FloatingActionButton) view.findViewById(R.id.button_locate_user);
-            fab.setOnClickListener(new View.OnClickListener() {
+            FloatingActionButton locateMeButton = (FloatingActionButton) view.findViewById(R.id.button_locate_user);
+            locateMeButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     System.out.println("called click");
@@ -131,7 +133,6 @@ public class HomeActivity extends BaseActivity {
             map.getUiSettings().setTiltGesturesEnabled(false);
             map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
             map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(2.923218, 101.642023), 14.0f));
-            initializeMarkers();
             Log.d(TAG, "map initialized");
         }
 
@@ -154,8 +155,12 @@ public class HomeActivity extends BaseActivity {
         //	Overriding location listener
         //----------------------------------------
         @Override
-        public void onLocationChanged(Location location) {
+        public void onLocationChanged(Location newLocation) {
             Log.i("called", "onLocationChanged");
+            if (!asyncRunning && !markerLoaded) {
+                location = newLocation;
+                initializeMarkers(newLocation.getLatitude(), newLocation.getLongitude());
+            }
         }
 
         @Override
@@ -190,18 +195,121 @@ public class HomeActivity extends BaseActivity {
         //----------------------------------------
         //	Initializing map markers
         //----------------------------------------
-        public void initializeMarkers() {
+        public void initializeMarkers(Double latitude, Double longitude) {
 
-//            for (Lot lot : parkingLots) {
-//                Marker marker = map.addMarker(new MarkerOptions().position(new LatLng(Double.valueOf(lot.getLatitute()), Double.valueOf(lot.getLongitute()))));
-//                markers.add(marker);
-//            }
+            //declare Asynctask's task
+            AsyncTask<JSONDTO, Void, JSONDTO> markerAPICall = new AsyncTask<JSONDTO, Void, JSONDTO>() {
 
+                @Override
+                protected JSONDTO doInBackground(JSONDTO... params) {
+                    JSONDTO jsonFromServer;
+                    try {
+                        jsonFromServer = APIUtils.processAPICalls(params[0]);
+                        return jsonFromServer;
+
+                    } catch (MyException e) {
+                        Log.e(TAG, e.getMessage());
+                        JSONDTO returnDTO = new JSONDTO();
+                        JSONError error = new JSONError(e.getError(), e.getMessage());
+                        returnDTO.setError(error);
+                        return returnDTO;
+                    } catch (Exception e) {
+                        JSONDTO returnDTO = new JSONDTO();
+                        e.printStackTrace();
+                        Log.e(TAG, "Exception occurred when calling API");
+                        JSONError error = new JSONError(ErrorStatus.ACCESS_DENIED.getName(), ErrorStatus.ACCESS_DENIED.getErrorMessage());
+                        returnDTO.setError(error);
+                        return returnDTO;
+                    }
+                }
+
+                @Override
+                protected void onPostExecute(JSONDTO jsondto) {
+                    try {
+                        if (jsondto.getError() != null) {
+                            throw new MyException(jsondto.getError().getCode(), jsondto.getError().getMessage());
+                        } else {
+
+                            if (jsondto.getParkingLots() != null) {
+                                parkingLots = jsondto.getParkingLots();
+                            }
+
+                            globalMarkerList.clear();
+                            for (Lot lot : parkingLots) {
+                                if (lot.getLongitude() != null && lot.getLatitude() != null && lot.getLotName() != null && lot.getAddress() != null) {
+                                    Marker marker = map.addMarker(new MarkerOptions().position(new LatLng(lot.getLatitude(), lot.getLongitude())).title(lot.getLotName()).snippet(lot.getAddress()));
+                                    globalMarkerList.add(marker);
+                                } else {
+                                    Log.e(TAG, "Data error occured");
+                                }
+                            }
+                            markerLoaded = true;
+
+                            if (progressDialog != null) {
+                                progressDialog.dismiss();
+                            }
+                            asyncRunning = false;
+                        }
+
+                    } catch (MyException e) {
+                        AlertDialog error = new AlertDialog.Builder(getActivity()).create();
+                        error.requestWindowFeature(Window.FEATURE_NO_TITLE);
+                        error.setMessage(e.getMessage());
+                        error.setInverseBackgroundForced(true);
+                        error.setButton(DialogInterface.BUTTON_NEUTRAL, "OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+//                              TODO don't know what to do here
+                            }
+                        });
+                        error.show();
+
+                        if (progressDialog != null) {
+                            progressDialog.dismiss();
+                        }
+
+                    }
+                }
+            };
+
+            //finish declaring async task definition
+            //build json object to process login
+            JSONDTO dataToProcess = new JSONDTO();
+            dataToProcess.setServiceName(APIUtils.GET_PARKING_LOTS);
+            dataToProcess.setLatitude(latitude);
+            dataToProcess.setLongitude(longitude);
+            //TODO hardcoded groupType, change to use zoom level
+            dataToProcess.setGroupType("city");
+
+            //reverse locate the current city of the user
+            Geocoder geocoder = new Geocoder(getActivity(), Locale.getDefault());
+            try {
+                List<Address> addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
+
+                if (addresses.size() > 0 && addresses.get(0).getLocality() != null) {
+                    dataToProcess.setCriteria(addresses.get(0).getLocality());
+                    Toast.makeText(getActivity(), "You're now in " + addresses.get(0).getLocality(), Toast.LENGTH_SHORT).show();
+                } else {
+                    Log.e(TAG, "could not locate current city");
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                asyncRunning = true;
+                markerAPICall.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, dataToProcess);
+            } else {
+                markerAPICall.execute(dataToProcess);
+            }
         }
 
         @Override
         public void onProviderEnabled(String arg0) {
             Log.i("called", "onProviderEnabled");
+            if (errorDialog != null) {
+                errorDialog.dismiss();
+            }
         }
 
         @Override
