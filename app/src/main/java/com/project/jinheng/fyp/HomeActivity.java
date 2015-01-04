@@ -65,8 +65,6 @@ public class HomeActivity extends BaseActivity {
 
     public static class HomeFragment extends Fragment implements LocationListener {
 
-        public static List<Marker> globalMarkerList;
-
         private static final String TAG = "HomeFragment";
         private GoogleMap map;
         private Location location;
@@ -234,11 +232,9 @@ public class HomeActivity extends BaseActivity {
                                 parkingLots = jsondto.getParkingLots();
                             }
 
-                            globalMarkerList.clear();
                             for (Lot lot : parkingLots) {
                                 if (lot.getLongitude() != null && lot.getLatitude() != null && lot.getLotName() != null && lot.getAddress() != null) {
                                     Marker marker = map.addMarker(new MarkerOptions().position(new LatLng(lot.getLatitude(), lot.getLongitude())).title(lot.getLotName()).snippet(lot.getAddress()));
-                                    globalMarkerList.add(marker);
                                 } else {
                                     Log.e(TAG, "Data error occured");
                                 }
