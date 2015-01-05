@@ -14,6 +14,60 @@ public class Lot {
     private String operationHour;
     private Long capacity;
     private String availability;
+    private String nearbyAttraction;
+    private String city;
+    private String state;
+    private Price price;
+    private Integer openHour;
+    private Integer closeHour;
+
+    public Integer getOpenHour() {
+        return openHour;
+    }
+
+    public void setOpenHour(Integer openHour) {
+        this.openHour = openHour;
+    }
+
+    public Integer getCloseHour() {
+        return closeHour;
+    }
+
+    public void setCloseHour(Integer closeHour) {
+        this.closeHour = closeHour;
+    }
+
+    public Price getPrice() {
+        return price;
+    }
+
+    public void setPrice(Price price) {
+        this.price = price;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    public void setState(String state) {
+        this.state = state;
+    }
+
+    public String getNearbyAttraction() {
+        return nearbyAttraction;
+    }
+
+    public void setNearbyAttraction(String nearbyAttraction) {
+        this.nearbyAttraction = nearbyAttraction;
+    }
 
     public Integer getId() {
         return id;

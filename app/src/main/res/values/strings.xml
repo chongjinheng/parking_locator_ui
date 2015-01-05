@@ -20,6 +20,10 @@
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
+    <string name="search_hint">Nearby landmarks</string>
+
+    <string name="info_window_instruction">Click for more details</string>
+
     <!-- Titles -->
     <string name="title_Login">Login Page</string>
     <string name="title_Home">Home Page</string>

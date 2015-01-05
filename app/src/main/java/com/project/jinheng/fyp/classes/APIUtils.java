@@ -1,11 +1,13 @@
 package com.project.jinheng.fyp.classes;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.util.Base64;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -26,6 +28,8 @@ import java.io.IOError;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.text.DateFormat;
+import java.util.Date;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -138,14 +142,15 @@ public class APIUtils {
 
                     }
                 } else {
-                    throw new MyException(ErrorStatus.APPLICATION_SYSTEM_DOWN.getName(), ErrorStatus.APPLICATION_SYSTEM_DOWN.getErrorMessage());
+                    throw new MyException(ErrorStatus.ACCESS_DENIED.getName(), ErrorStatus.ACCESS_DENIED.getErrorMessage());
                 }
             }
         } catch (IllegalArgumentException e) {
             Log.e(TAG, e.getMessage());
             e.printStackTrace();
         } catch (HttpHostConnectException e) {
-            throw new MyException(ErrorStatus.APPLICATION_SYSTEM_DOWN.getName(), ErrorStatus.APPLICATION_SYSTEM_DOWN.getErrorMessage());
+            e.printStackTrace();
+            throw e;
         } catch (Exception e) {
             Log.e(TAG, e.getMessage());
             e.printStackTrace();

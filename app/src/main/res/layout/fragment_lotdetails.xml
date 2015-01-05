@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:background="@color/text_white">
+
+    <TextView
+        android:id="@+id/detail_lot_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/text_black"/>
+
+    <TextView
+        android:id="@+id/detail_lot_type"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/text_black"/>
+
+    <TextView
+        android:id="@+id/detail_lot_address"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/text_black"/>
+
+    <TextView
+        android:id="@+id/detail_lot_operation_hour"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/text_black"/>
+
+    <TextView
+        android:id="@+id/detail_lot_capacity"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/text_black"/>
+
+    <TextView
+        android:id="@+id/detail_lot_availability"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/text_black"/>
+
+    <TextView
+        android:id="@+id/detail_lot_nearby"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/text_black"/>
+
+    <TextView
+        android:id="@+id/detail_lot_price"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/text_black"/>
+
+</LinearLayout>
