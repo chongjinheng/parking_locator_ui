@@ -201,6 +201,7 @@ public class HomeActivity extends BaseActivity {
             map.getUiSettings().setTiltGesturesEnabled(false);
             map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
             map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(2.923218, 101.642023), 15.0f));
+            map.setTrafficEnabled(true);
 
             //animation of the marker
             map.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
@@ -417,10 +418,10 @@ public class HomeActivity extends BaseActivity {
                                             Integer parkingLotIndex = Integer.valueOf(marker.getSnippet());
                                             Lot lot = parkingLots.get(parkingLotIndex);
                                             title.setText(lot.getLotName());
-                                            address.setText(lot.getAddress() + lot.getCity() + "," + lot.getState());
+                                            address.setText(lot.getAddress() + " " + lot.getCity() + ", " + lot.getState());
 
                                             //set price
-                                            DecimalFormat formatter = new DecimalFormat("RM###.00");
+                                            DecimalFormat formatter = new DecimalFormat("RM ###.00");
                                             if (lot.getPrice() != null) {
                                                 String type = lot.getPrice().getPriceType();
                                                 if (type.equals("FLAT")) {

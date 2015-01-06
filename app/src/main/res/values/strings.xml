@@ -32,4 +32,12 @@
 
     <!--Facebook-->
     <string name="facebook_app_id">745816718838207</string>
+
+    <!-- Lot Details -->
+    <string name="lot_price">Price</string>
+    <string name="operation_hour">Operation Hour</string>
+    <string name="capacity">Capacity</string>
+    <string name="availability">Availability</string>
+    <string name="nearby">Nearby locations</string>
+    <string name="navigate_here">Navigate!</string>
 </resources>

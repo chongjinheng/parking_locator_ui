@@ -62,7 +62,7 @@
             android:layout_marginLeft="10dp"
             android:layout_marginStart="10dp"
             android:textColor="@color/text_black"
-            android:textSize="14sp"
+            android:textSize="13sp"
             android:text="@string/app_name"/>
 
         <TextView
