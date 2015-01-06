@@ -7,6 +7,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -32,6 +34,7 @@ import com.project.jinheng.fyp.classes.JSONError;
 import com.project.jinheng.fyp.classes.MyException;
 import com.project.jinheng.fyp.classes.Validators;
 
+import java.net.URL;
 import java.util.Arrays;
 
 /**
@@ -47,6 +50,8 @@ public class LoginActivity extends Activity {
     private String facebookUID; //save into preference
     private String loginEmail; //save into preference
     private String facebookUserName; //save into preference
+    private String facebookUserEmail; //save into preference
+    private String facebookPictureJson; //save into preference
 
     private Session.StatusCallback callback = new Session.StatusCallback() {
         @Override
@@ -102,6 +107,7 @@ public class LoginActivity extends Activity {
                                 Log.i("Facebook", "User ID found " + graphUser.getId());
                                 facebookUID = graphUser.getId();
                                 facebookUserName = graphUser.getName();
+                                facebookUserEmail = graphUser.getProperty("email").toString();
                             }
                         }
                     });
@@ -122,6 +128,14 @@ public class LoginActivity extends Activity {
                         tempDTO.setFacebookUID(facebookUID);
                         tempDTO.setName(facebookUserName);
                         jsonFromServer = APIUtils.processAPICalls(tempDTO);
+
+                        Log.d(TAG, "Loading profile picture");
+                        String urlString = "https://graph.facebook.com/" + facebookUID + "/picture";
+                        URL url = new URL(urlString);
+                        Bitmap facebookUserPicture = BitmapFactory.decodeStream(url.openConnection().getInputStream());
+                        facebookPictureJson = APIUtils.toJson(facebookUserPicture);
+                        Log.d(TAG, "Profile picture loaded");
+
                         return jsonFromServer;
 
                     } catch (MyException e) {
@@ -187,7 +201,7 @@ public class LoginActivity extends Activity {
                         error.setButton(DialogInterface.BUTTON_NEUTRAL, "OK", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-//                              TODO don't know what to do here
+                                //do nothing
                             }
                         });
                         error.show();
@@ -383,6 +397,8 @@ public class LoginActivity extends Activity {
             editor.putBoolean("facebookLog", true);
             editor.putString("facebookUID", facebookUID);
             editor.putString("name", facebookUserName);
+            editor.putString("email", facebookUserEmail);
+            editor.putString("picture", facebookPictureJson);
         }
         if (loginEmail != null) {
             editor.putBoolean("facebookLog", false);

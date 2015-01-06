@@ -1,10 +1,13 @@
 package com.project.jinheng.fyp;
 
+import android.app.AlertDialog;
 import android.app.SearchManager;
 import android.app.SearchableInfo;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -20,6 +23,7 @@ import android.widget.ListView;
 
 import com.facebook.Session;
 import com.melnykov.fab.FloatingActionButton;
+import com.project.jinheng.fyp.classes.APIUtils;
 import com.project.jinheng.fyp.classes.adapters.DrawerListAdapter;
 import com.project.jinheng.fyp.classes.adapters.Header;
 import com.project.jinheng.fyp.classes.adapters.Item;
@@ -41,6 +45,7 @@ public abstract class BaseActivity extends ActionBarActivity implements android.
     protected Menu menu;
     private android.support.v7.widget.SearchView searchView;
     private MenuItem searchItem;
+    private AlertDialog errorDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -147,6 +152,30 @@ public abstract class BaseActivity extends ActionBarActivity implements android.
         return false;
     }
 
+    private void showErrorDialog() {
+        Log.i("called", "showErrorDialog");
+        //initialize error dialog
+        if (errorDialog == null) {
+            errorDialog = new AlertDialog.Builder(this).create();
+            errorDialog.setTitle("Error");
+            errorDialog.setMessage("Something went wrong, please try again later");
+            errorDialog.setInverseBackgroundForced(true);
+            errorDialog.setButton(DialogInterface.BUTTON_POSITIVE, "OK", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    finish();
+                }
+            });
+
+        }
+
+        if (!errorDialog.isShowing()) {
+            errorDialog.show();
+        } else {
+            errorDialog.dismiss();
+        }
+    }
+
     public void logoutButtonClicked(Context context) {
         Session session = Session.getActiveSession();
         if (session != null) {
@@ -169,9 +198,32 @@ public abstract class BaseActivity extends ActionBarActivity implements android.
 
     public void initializeDrawerItem() {
 
-        List<Item> items = new ArrayList<Item>();
+        List<Item> items = new ArrayList<>();
         //hardcoded name TODO
-        items.add(new Header(R.drawable.ic_user_dp, "JinHeng Chong", "chongjinheng@gmail.com"));
+        SharedPreferences settings = getSharedPreferences(SplashScreen.PREFS_NAME, 0);
+        boolean loggedInWithFacebook = settings.getBoolean("facebookLog", false);
+        if (loggedInWithFacebook) {
+            String facebookUID = settings.getString("facebookUID", null);
+            String facebookUserName = settings.getString("name", null);
+            String facebookEmail = settings.getString("email", null);
+            String profilePictureJSON = settings.getString("picture", null);
+            if (facebookUID != null || facebookUserName != null || profilePictureJSON != null || facebookEmail != null) {
+                //load json to bitmap
+//                Bitmap facebookProfilePicture = (Bitmap) APIUtils.fromJSON(profilePictureJSON, Bitmap.class);
+                //TODO i can't solve this shit
+                items.add(new Header(R.drawable.ic_user_dp, facebookUserName, facebookEmail));
+            } else {
+                showErrorDialog();
+
+            }
+        } else {
+            String userName = settings.getString("name", null);
+            String userEmail = settings.getString("email", null);
+            if (userName != null || userEmail != null) {
+                items.add(new Header(R.drawable.ic_user_dp, userName, userEmail));
+            }
+        }
+
         items.add(new ListItem(R.drawable.ic_settings, "Settings"));
         items.add(new ListItem(R.drawable.ic_logout, "Logout"));
 

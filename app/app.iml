@@ -94,8 +94,9 @@
     <orderEntry type="library" exported="" name="support-annotations-21.0.0" level="project" />
     <orderEntry type="library" exported="" name="library-2.4.0" level="project" />
     <orderEntry type="library" exported="" name="bolts-android-1.1.2" level="project" />
-    <orderEntry type="library" exported="" name="android-maps-utils-0.3.2" level="project" />
+    <orderEntry type="library" exported="" name="picasso-2.4.0" level="project" />
     <orderEntry type="library" exported="" name="play-services-6.1.71" level="project" />
+    <orderEntry type="library" exported="" name="android-maps-utils-0.3.2" level="project" />
     <orderEntry type="module" module-name="MaterialDesign" exported="" />
   </component>
 </module>
