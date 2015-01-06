@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -26,6 +27,10 @@ public class SplashScreen extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splashscreen);
+
+        //kill pending service
+        stopService(new Intent(SplashScreen.this, MonitorLocationService.class));
+        Log.d("SplashScreen", "Pending services killed");
 
         //Animation of the entire splash screen
         float scale = getResources().getDisplayMetrics().density;

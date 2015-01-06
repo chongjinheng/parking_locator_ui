@@ -1,19 +1,22 @@
 package com.project.jinheng.fyp;
 
+import android.app.AlarmManager;
 import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
+import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
+import android.os.IBinder;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -28,6 +31,8 @@ import com.project.jinheng.fyp.classes.APIUtils;
 import com.project.jinheng.fyp.classes.Lot;
 
 import java.text.DecimalFormat;
+
+import com.project.jinheng.fyp.MonitorLocationService.LocalBinder;
 
 /**
  * Created by JinHeng on 1/5/2015.
@@ -61,6 +66,23 @@ public class LotDetailActivity extends BaseActivity {
 
         private GoogleMap map;
         private AlertDialog errorDialog;
+        private boolean serviceBounded;
+        private MonitorLocationService monitorLocationService;
+
+        ServiceConnection connection = new ServiceConnection() {
+            @Override
+            public void onServiceConnected(ComponentName name, IBinder service) {
+                serviceBounded = true;
+                LocalBinder localBinder = (LocalBinder) service;
+                monitorLocationService = localBinder.getServiceInstance();
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName name) {
+                serviceBounded = false;
+                monitorLocationService = null;
+            }
+        };
 
         public static LotDetailFragment newInstance(int layout) {
             LotDetailFragment classInstance = new LotDetailFragment();
@@ -98,7 +120,18 @@ public class LotDetailActivity extends BaseActivity {
 
                         if (lot != null) {
                             Uri uri = Uri.parse("geo:0,0?q=" + lot.getLatitude() + "," + lot.getLongitude());
+                            Intent serviceIntent = new Intent(getActivity(), MonitorLocationService.class);
+
                             getActivity().startActivity(new Intent(Intent.ACTION_VIEW, uri));
+                            if (serviceBounded) {
+                                getActivity().unbindService(connection);
+                                serviceBounded = false;
+                            }
+                            SharedPreferences settings = getActivity().getSharedPreferences(SplashScreen.PREFS_NAME, 0);
+                            SharedPreferences.Editor editor = settings.edit();
+                            editor.putString("serviceTarget", APIUtils.toJson(lot));
+                            editor.apply();
+                            getActivity().bindService(serviceIntent, connection, BIND_AUTO_CREATE);
                         } else {
                             Log.e(TAG, "Lot not found when trying to intent to navigation");
                             showErrorDialog();
@@ -254,5 +287,26 @@ public class LotDetailActivity extends BaseActivity {
                 showErrorDialog();
             }
         }
+
+        @Override
+        public void onResume() {
+            Log.d(TAG, "On resume called");
+            super.onResume();
+            if (serviceBounded) {
+                getActivity().unbindService(connection);
+                serviceBounded = false;
+            }
+        }
+
+        @Override
+        public void onStop() {
+            Log.d(TAG, "On stop called");
+            super.onStop();
+            if (serviceBounded) {
+                getActivity().unbindService(connection);
+                serviceBounded = false;
+            }
+        }
     }
+
 }

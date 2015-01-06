@@ -45,11 +45,12 @@
             </intent-filter>
         </activity>
 
+        <service android:name=".MonitorLocationService"/>
+
         <activity
             android:name=".LoginActivity"
             android:screenOrientation="portrait"
             android:label="@string/title_Login"/>
-
 
         <activity
             android:name=".RegisterActivity"
