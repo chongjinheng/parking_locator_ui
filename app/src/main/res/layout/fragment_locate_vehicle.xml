@@ -1,6 +1,218 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="match_parent"
+                android:background="@color/text_white">
 
+    <fragment
+        android:id="@+id/vehicle_detail_map"
+        android:layout_width="match_parent"
+        android:layout_height="160dp"
+        class="com.google.android.gms.maps.MapFragment"/>
+
+    <RelativeLayout
+        android:id="@+id/vehicle_big_blue_box"
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        android:layout_below="@id/vehicle_detail_map"
+        android:background="@color/primary">
+
+        <RelativeLayout
+            android:id="@+id/vehicle_blue_box"
+            android:layout_width="280dp"
+            android:layout_height="match_parent"
+            android:padding="8dp">
+
+            <TextView
+                android:id="@+id/vehicle_lot_name"
+                android:layout_width="match_parent"
+                android:layout_height="28dp"
+                android:textColor="@color/text_white"
+                android:layout_marginRight="5dp"
+                android:layout_marginEnd="5dp"
+                android:textSize="20sp"
+                android:gravity="center_horizontal"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:id="@+id/vehicle_lot_address"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:textColor="@color/text_white"
+                android:layout_below="@id/vehicle_lot_name"
+                android:textSize="13sp"
+                android:layout_marginLeft="5dp"
+                android:layout_marginStart="7dp"
+                android:layout_marginTop="8dp"
+                android:textStyle="italic"/>
+
+            <TextView
+                android:id="@+id/vehicle_lot_type"
+                android:layout_width="match_parent"
+                android:layout_height="fill_parent"
+                android:textColor="@color/text_white"
+                android:layout_below="@id/vehicle_lot_address"
+                android:layout_marginLeft="7dp"
+                android:layout_marginStart="7dp"
+                android:layout_marginBottom="3dp"
+                android:textSize="12sp"
+                android:gravity="bottom"
+                android:textStyle="bold"/>
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/navigate_to_vehicle_box"
+            android:layout_width="fill_parent"
+            android:layout_height="120dp"
+            android:layout_toRightOf="@id/vehicle_blue_box"
+            android:layout_toEndOf="@id/vehicle_blue_box"
+            android:background="@drawable/bg_button_translucent"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ImageView
+                android:id="@+id/navigate_to_vehicle_button"
+                android:contentDescription="@string/app_name"
+                android:layout_width="55dp"
+                android:scaleType="fitXY"
+                android:layout_height="50dp"
+                android:layout_marginTop="25dp"
+                android:layout_marginBottom="2dp"
+                android:layout_marginEnd="15dp"
+                android:layout_marginRight="15dp"
+                android:layout_centerInParent="true"
+                android:src="@drawable/ic_gps"
+                android:clickable="true"
+                android:focusable="true"/>
+
+        </RelativeLayout>
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingLeft="15dp"
+        android:paddingStart="15dp"
+        android:paddingRight="15dp"
+        android:paddingEnd="15dp"
+        android:paddingTop="8dp"
+        android:layout_below="@id/vehicle_big_blue_box">
+
+        <TextView
+            android:id="@+id/detail_vehicle_price_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/text_black"
+            android:textStyle="bold"
+            android:textSize="20sp"
+            android:text="@string/lot_price"/>
+
+        <TextView
+            android:id="@+id/detail_vehicle_price"
+            android:layout_below="@id/detail_vehicle_price_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="10dp"
+            android:textSize="18sp"
+            android:textColor="@color/text_black"/>
+
+        <TextView
+            android:id="@+id/detail_vehicle_parked_time_title"
+            android:layout_below="@id/detail_vehicle_price"
+            android:layout_marginTop="15dp"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:textColor="@color/text_black"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:text="@string/total_parked_time"/>
+
+        <TextView
+            android:id="@+id/detail_vehicle_parked_time"
+            android:layout_below="@id/detail_vehicle_parked_time_title"
+            android:layout_marginTop="3dp"
+            android:textSize="13sp"
+            android:layout_marginLeft="5dp"
+            android:layout_marginStart="5dp"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:textColor="@color/text_black"/>
+
+        <!--<TextView-->
+        <!--android:id="@+id/detail_lot_availability_title"-->
+        <!--android:layout_width="fill_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_marginTop="10dp"-->
+        <!--android:textSize="13sp"-->
+        <!--android:textStyle="bold"-->
+        <!--android:layout_below="@id/detail_lot_price"-->
+        <!--android:layout_toEndOf="@id/detail_lot_operation_hour"-->
+        <!--android:layout_toRightOf="@id/detail_lot_operation_hour"-->
+        <!--android:textColor="@color/text_black"-->
+        <!--android:text="@string/availability"/>-->
+
+        <!--<TextView-->
+        <!--android:id="@+id/detail_lot_availability"-->
+        <!--android:layout_below="@id/detail_lot_availability_title"-->
+        <!--android:layout_marginTop="2dp"-->
+        <!--android:textSize="13sp"-->
+        <!--android:layout_marginLeft="5dp"-->
+        <!--android:layout_marginStart="5dp"-->
+        <!--android:layout_toEndOf="@id/detail_lot_operation_hour_title"-->
+        <!--android:layout_toRightOf="@id/detail_lot_operation_hour_title"-->
+        <!--android:layout_width="fill_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:textColor="@color/text_black"/>-->
+
+        <!--<TextView-->
+        <!--android:id="@+id/detail_lot_capacity_title"-->
+        <!--android:layout_width="fill_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_marginTop="5dp"-->
+        <!--android:layout_below="@id/detail_lot_availability"-->
+        <!--android:textColor="@color/text_black"-->
+        <!--android:layout_toEndOf="@id/detail_lot_operation_hour_title"-->
+        <!--android:layout_toRightOf="@id/detail_lot_operation_hour_title"-->
+        <!--android:textSize="13sp"-->
+        <!--android:textStyle="bold"-->
+        <!--android:text="@string/capacity"/>-->
+
+        <!--<TextView-->
+        <!--android:id="@+id/detail_lot_capacity"-->
+        <!--android:layout_width="fill_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_marginTop="2dp"-->
+        <!--android:textSize="13sp"-->
+        <!--android:layout_marginLeft="5dp"-->
+        <!--android:layout_marginStart="5dp"-->
+        <!--android:layout_toRightOf="@id/detail_lot_operation_hour"-->
+        <!--android:layout_toEndOf="@id/detail_lot_operation_hour"-->
+        <!--android:layout_below="@id/detail_lot_capacity_title"-->
+        <!--android:textColor="@color/text_black"/>-->
+
+        <!--<TextView-->
+        <!--android:id="@+id/detail_lot_nearby_title"-->
+        <!--android:layout_below="@id/detail_lot_capacity"-->
+        <!--android:textStyle="bold"-->
+        <!--android:textSize="12sp"-->
+        <!--android:layout_marginTop="10dp"-->
+        <!--android:text="@string/nearby"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:textColor="@color/text_black"/>-->
+
+        <!--<TextView-->
+        <!--android:id="@+id/detail_lot_nearby"-->
+        <!--android:layout_below="@id/detail_lot_nearby_title"-->
+        <!--android:layout_marginTop="3dp"-->
+        <!--android:textSize="12sp"-->
+        <!--android:textStyle="italic"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:textColor="@color/text_black"/>-->
+
+
+    </RelativeLayout>
 </RelativeLayout>

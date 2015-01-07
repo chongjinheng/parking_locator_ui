@@ -23,12 +23,14 @@ import android.os.SystemClock;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.animation.BounceInterpolator;
 import android.view.animation.Interpolator;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -37,6 +39,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.Projection;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -48,10 +51,13 @@ import com.project.jinheng.fyp.classes.JSONError;
 import com.project.jinheng.fyp.classes.Lot;
 import com.project.jinheng.fyp.classes.MyException;
 
+import org.w3c.dom.Text;
+
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -64,6 +70,9 @@ public class HomeActivity extends BaseActivity {
 
     private long timeWhenBackPressed = 0;
     private static Marker justToPassAMarker;
+    private static TextView justToPassAText;
+    private static FloatingActionButton justToPassAButton;
+    public static boolean mapIsTouched;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,6 +94,10 @@ public class HomeActivity extends BaseActivity {
         // if info window is opened, close it instead of trying to exit
         if (justToPassAMarker != null) {
             justToPassAMarker.hideInfoWindow();
+            justToPassAButton.setVisibility(View.INVISIBLE);
+            justToPassAText.setVisibility(View.INVISIBLE);
+            justToPassAText = null;
+            justToPassAButton = null;
             justToPassAMarker = null;
         } else {
             // exit the application by pressing back 2 twice
@@ -123,6 +136,9 @@ public class HomeActivity extends BaseActivity {
                 connectingToastHandler.postDelayed(this, 2500);
             }
         };
+        private View view;
+        private TextView parkHereText;
+        private FloatingActionButton parkHereButton;
 
         public static HomeFragment newInstance(int layout) {
             HomeFragment classInstance = new HomeFragment();
@@ -137,13 +153,15 @@ public class HomeActivity extends BaseActivity {
         public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
             View view = inflater.inflate(getArguments().getInt("layout"), container, false);
+            this.view = view;
 
             if (map == null) {
-                map = ((MapFragment) getFragmentManager().findFragmentById(R.id.map)).getMap();
+                map = ((MyMapFragment) getFragmentManager().findFragmentById(R.id.map)).getMap();
                 if (map == null) {
-                    Log.d(TAG, "Map not loaded");
+                    Log.e(TAG, "Map not loaded");
                 }
             }
+
             initializeMap();
             initializeLocationManager();
 
@@ -177,7 +195,7 @@ public class HomeActivity extends BaseActivity {
                 public void onClick(View v) {
                     //TODO get from preference see if the user parked
                     SharedPreferences settings = getActivity().getSharedPreferences(SplashScreen.PREFS_NAME, 0);
-                    String json = settings.getString("details", null);
+                    String json = settings.getString("tempParkedLocation", null);
                     if (json != null) {
                         Intent intent = new Intent(getActivity(), LocateVehicleActivity.class);
                         startActivity(intent);
@@ -187,8 +205,21 @@ public class HomeActivity extends BaseActivity {
                     }
                 }
             });
-            return view;
 
+            View rootLayout = view.findViewById(R.id.root_layout);
+            rootLayout.setOnTouchListener(new View.OnTouchListener() {
+                @Override
+                public boolean onTouch(View v, MotionEvent event) {
+                    Toast.makeText(getActivity(), "fts", Toast.LENGTH_SHORT);
+                    if (currentMarker.isInfoWindowShown()) {
+                        currentMarker.hideInfoWindow();
+                        parkHereButton.setVisibility(View.INVISIBLE);
+                        parkHereText.setVisibility(View.INVISIBLE);
+                    }
+                    return false;
+                }
+            });
+            return view;
         }
 
         //----------------------------------------
@@ -203,6 +234,26 @@ public class HomeActivity extends BaseActivity {
             map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(2.923218, 101.642023), 15.0f));
             map.setTrafficEnabled(true);
 
+            parkHereText = getParkHereText(view);
+            parkHereButton = getParkHereButton(view);
+
+            //remove the ask user parking
+            map.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+                @Override
+                public void onMapClick(LatLng latLng) {
+                    parkHereButton.setVisibility(View.INVISIBLE);
+                    parkHereText.setVisibility(View.INVISIBLE);
+                }
+            });
+            map.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
+                @Override
+                public void onCameraChange(CameraPosition cameraPosition) {
+                    if (HomeActivity.mapIsTouched) {
+                        parkHereButton.setVisibility(View.INVISIBLE);
+                        parkHereText.setVisibility(View.INVISIBLE);
+                    }
+                }
+            });
             //animation of the marker
             map.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
 
@@ -239,9 +290,38 @@ public class HomeActivity extends BaseActivity {
                     marker.showInfoWindow();
                     currentMarker = marker;
                     justToPassAMarker = marker;
+
+                    //ask user wanna park or not if current marker is near user
+                    if (APIUtils.calculateDistance(location.getLatitude(), location.getLongitude(), marker.getPosition().latitude, marker.getPosition().longitude, "M") <= 0.2) {
+                        parkHereText.setVisibility(View.VISIBLE);
+                        justToPassAText = parkHereText;
+                        parkHereButton.setVisibility(View.VISIBLE);
+                        justToPassAButton = parkHereButton;
+                        parkHereButton.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                //TODO temporarily use shared preference first
+                                String json = APIUtils.toJson(parkingLots.get(Integer.valueOf(marker.getSnippet())));
+
+                                SharedPreferences settings = getActivity().getSharedPreferences(SplashScreen.PREFS_NAME, 0);
+                                SharedPreferences.Editor editor = settings.edit();
+                                editor.putString("tempParkedLocation", json).apply();
+                                Calendar timeNow = Calendar.getInstance();
+                                String startTimeJson = APIUtils.toJson(timeNow);
+                                editor.putString("parkedTime", startTimeJson).apply();
+                                Toast.makeText(getActivity(), "Ok! your vehicle is now parked in " + marker.getTitle(), Toast.LENGTH_SHORT).show();
+
+                            }
+                        });
+                    } else {
+                        parkHereButton.setVisibility(View.INVISIBLE);
+                        parkHereText.setVisibility(View.INVISIBLE);
+                    }
+
                     return false;
                 }
             });
+
             Log.d(TAG, "map initialized");
         }
 
@@ -254,11 +334,6 @@ public class HomeActivity extends BaseActivity {
 
             locationProvider = LocationManager.NETWORK_PROVIDER;
             location = locationManager.getLastKnownLocation(locationProvider);
-
-            if (location != null) {
-                onLocationChanged(location);
-                map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 15.0f));
-            }
         }
 
         //----------------------------------------
@@ -276,6 +351,7 @@ public class HomeActivity extends BaseActivity {
                     initializeMarkers(newLocation.getLatitude(), newLocation.getLongitude());
                 }
                 if (!markerLoaded) {
+                    map.clear();
                     initializeMarkers(newLocation.getLatitude(), newLocation.getLongitude());
                 }
 
@@ -287,8 +363,10 @@ public class HomeActivity extends BaseActivity {
             showErrorDialog();
             if (!markerLoaded) {
                 if (location != null) {
+                    map.clear();
                     initializeMarkers(location.getLatitude(), location.getLongitude());
                 } else {
+                    map.clear();
                     initializeMarkers(2.923218, 2.923218);
                 }
             }
@@ -372,6 +450,7 @@ public class HomeActivity extends BaseActivity {
                 @Override
                 protected void onPostExecute(JSONDTO jsondto) {
                     try {
+                        asyncRunning = false;
                         displayOrDisableToast(1);
                         if (jsondto != null) {
                             if (jsondto.getError() != null) {
@@ -383,7 +462,6 @@ public class HomeActivity extends BaseActivity {
                                         NetworkInfo wifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
                                         if (!wifi.isConnected()) {
                                             Toast.makeText(getActivity(), "System is currently unavailable. Functionality will be limited.", Toast.LENGTH_LONG).show();
-                                            asyncRunning = false;
                                         } else {
                                             if (!markerLoaded) {
                                                 map.clear();
@@ -403,107 +481,120 @@ public class HomeActivity extends BaseActivity {
 
                                 //initialize custom info window and clicked event
                                 map.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
-                                    //use self defined info window frame
-                                    @Override
-                                    public View getInfoWindow(Marker marker) {
-                                        View v = getActivity().getLayoutInflater().inflate(R.layout.info_window, null);
+                                                             //use self defined info window frame
+                                                             @Override
+                                                             public View getInfoWindow(Marker marker) {
+                                                                 View v = getActivity().getLayoutInflater().inflate(R.layout.info_window, null);
 
-                                        TextView title = (TextView) v.findViewById(R.id.info_window_title);
-                                        TextView address = (TextView) v.findViewById(R.id.info_window_address);
-                                        TextView details = (TextView) v.findViewById(R.id.info_window_details);
-                                        ImageView availability = (ImageView) v.findViewById(R.id.info_window_availability);
-                                        TextView price = (TextView) v.findViewById(R.id.info_window_price);
+                                                                 TextView title = (TextView) v.findViewById(R.id.info_window_title);
+                                                                 TextView address = (TextView) v.findViewById(R.id.info_window_address);
+                                                                 TextView details = (TextView) v.findViewById(R.id.info_window_details);
+                                                                 ImageView availability = (ImageView) v.findViewById(R.id.info_window_availability);
+                                                                 TextView price = (TextView) v.findViewById(R.id.info_window_price);
 
-                                        if (parkingLots != null) {
-                                            Integer parkingLotIndex = Integer.valueOf(marker.getSnippet());
-                                            Lot lot = parkingLots.get(parkingLotIndex);
-                                            title.setText(lot.getLotName());
-                                            address.setText(lot.getAddress() + " " + lot.getCity() + ", " + lot.getState());
+                                                                 if (parkingLots != null) {
+                                                                     Integer parkingLotIndex = Integer.valueOf(marker.getSnippet());
+                                                                     Lot lot = parkingLots.get(parkingLotIndex);
+                                                                     title.setText(lot.getLotName());
+                                                                     address.setText(lot.getAddress() + " " + lot.getCity() + ", " + lot.getState());
 
-                                            //set price
-                                            DecimalFormat formatter = new DecimalFormat("RM ###.00");
-                                            if (lot.getPrice() != null) {
-                                                String type = lot.getPrice().getPriceType();
-                                                if (type.equals("FLAT")) {
-                                                    Double value = Double.valueOf(lot.getPrice().getFlatRate()) / 100;
-                                                    String output = formatter.format(value);
-                                                    price.setText(output + " per hour");
-                                                } else if (type.equals("DYNAMIC") || type.equals("RATE")) {
-                                                    Double value = Double.valueOf(lot.getPrice().getFirstHour()) / 100;
-                                                    String output = formatter.format(value);
-                                                    price.setText("First Hour: " + output);
-                                                }
-                                            } else {
-                                                price.setText("");
-                                            }
+                                                                     //set price
+                                                                     DecimalFormat formatter = new DecimalFormat("RM ###.00");
+                                                                     if (lot.getPrice() != null) {
+                                                                         String type = lot.getPrice().getPriceType();
+                                                                         if (type.equals("FLAT")) {
+                                                                             Double value = Double.valueOf(lot.getPrice().getFlatRate()) / 100;
+                                                                             String output = formatter.format(value);
+                                                                             price.setText(output + " per hour");
+                                                                         } else if (type.equals("DYNAMIC") || type.equals("RATE")) {
+                                                                             Double value = Double.valueOf(lot.getPrice().getFirstHour()) / 100;
+                                                                             String output = formatter.format(value);
+                                                                             price.setText("First Hour: " + output);
+                                                                         }
+                                                                     } else {
+                                                                         price.setText("");
+                                                                     }
 
-                                            //display lot type accordingly
-                                            if (lot.getLotType().equals("B")) {
-                                                details.setText("Basement Parking");
-                                            } else if (lot.getLotType().equals("O")) {
-                                                details.setText("Open Parking");
-                                            } else if (lot.getLotType().equals("P")) {
-                                                details.setText("Paid Parking");
-                                            } else {
-                                                details.setText("");
-                                            }
+                                                                     //display lot type accordingly
+                                                                     if (lot.getLotType().equals("B")) {
+                                                                         details.setText("Basement Parking");
+                                                                     } else if (lot.getLotType().equals("O")) {
+                                                                         details.setText("Open Parking");
+                                                                     } else if (lot.getLotType().equals("P")) {
+                                                                         details.setText("Paid Parking");
+                                                                     } else {
+                                                                         details.setText("");
+                                                                     }
 
-                                            //set image according to opening hour
-                                            int openingHour;
-                                            int closeHour;
-                                            int hourNow;
-                                            boolean open = false; //to indicate parking open or close
-                                            boolean unknown = false; //for unknow operating time
+                                                                     //set image according to opening hour
+                                                                     int openingHour;
+                                                                     int closeHour;
+                                                                     int hourNow;
+                                                                     boolean open = false; //to indicate parking open or close
+                                                                     boolean unknown = false; //for unknow operating time
 
-                                            if (lot.getOpenHour() != 0 || lot.getCloseHour() != 0) {
-                                                openingHour = lot.getOpenHour();
-                                                closeHour = lot.getCloseHour();
+                                                                     if (lot.getOpenHour() != 0 || lot.getCloseHour() != 0) {
+                                                                         openingHour = lot.getOpenHour();
+                                                                         closeHour = lot.getCloseHour();
 
-                                                Calendar timeNow = Calendar.getInstance();
-                                                hourNow = timeNow.get(Calendar.HOUR_OF_DAY);
+                                                                         Calendar timeNow = Calendar.getInstance();
+                                                                         hourNow = timeNow.get(Calendar.HOUR_OF_DAY);
 
-                                                //logic to check whether parking is open now
+                                                                         //logic to check whether parking is open now
+                                                                         //convert to 12 hour format
 
-                                                open = openingHour <= hourNow || hourNow <= closeHour;
+                                                                         if (closeHour - openingHour >= 0) {
+                                                                             if (hourNow <= closeHour && hourNow > openingHour) {
+                                                                                 open = true;
+                                                                             }
+                                                                         } else if (closeHour - openingHour < 0) {
+                                                                             if (hourNow > closeHour && hourNow <= openingHour) {
+                                                                                 open = true;
+                                                                             }
+                                                                         } else open = false;
 
-                                            } else {
-                                                unknown = true;
-                                            }
+                                                                     } else {
+                                                                         unknown = true;
+                                                                     }
 
-                                            if (unknown) { //if unknown set to grey
-                                                availability.setBackgroundResource(R.drawable.ic_light_blue);
-                                            } else if (open) {
-                                                availability.setBackgroundResource(R.drawable.ic_light_green);
-                                            } else if (!open) {
-                                                availability.setBackgroundResource(R.drawable.ic_light_red);
-                                            }
-                                        }
+                                                                     if (unknown) { //if unknown set to grey
+                                                                         availability.setBackgroundResource(R.drawable.ic_light_blue);
+                                                                     } else if (open) {
+                                                                         availability.setBackgroundResource(R.drawable.ic_light_green);
+                                                                     } else if (!open) {
+                                                                         availability.setBackgroundResource(R.drawable.ic_light_red);
+                                                                     }
+                                                                 }
 
-                                        return v;
-                                    }
+                                                                 return v;
+                                                             }
 
-                                    @Override
-                                    public View getInfoContents(Marker marker) {
-                                        return null;
-                                    }
-                                });
+                                                             @Override
+                                                             public View getInfoContents(Marker marker) {
+                                                                 return null;
+                                                             }
+                                                         }
+
+                                );
 
                                 map.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
-                                    @Override
-                                    public void onInfoWindowClick(Marker marker) {
-                                        Intent intent = new Intent(getActivity(), LotDetailActivity.class);
+                                                                     @Override
+                                                                     public void onInfoWindowClick(Marker marker) {
+                                                                         Intent intent = new Intent(getActivity(), LotDetailActivity.class);
 
-                                        //prepare lot object to sent to activity
-                                        if (parkingLots != null) {
-                                            Integer parkingLotIndex = Integer.valueOf(marker.getSnippet());
-                                            Lot lot = parkingLots.get(parkingLotIndex);
-                                            String json = APIUtils.toJson(lot);
-                                            intent.putExtra("details", json);
-                                            startActivity(intent);
-                                            getActivity().overridePendingTransition(R.anim.bottom_to_top_in, R.anim.fade_out);
-                                        }
-                                    }
-                                });
+                                                                         //prepare lot object to sent to activity
+                                                                         if (parkingLots != null) {
+                                                                             Integer parkingLotIndex = Integer.valueOf(marker.getSnippet());
+                                                                             Lot lot = parkingLots.get(parkingLotIndex);
+                                                                             String json = APIUtils.toJson(lot);
+                                                                             intent.putExtra("details", json);
+                                                                             startActivity(intent);
+                                                                             getActivity().overridePendingTransition(R.anim.bottom_to_top_in, R.anim.fade_out);
+                                                                         }
+                                                                     }
+                                                                 }
+
+                                );
 
                                 Integer parkingLotListIndex = 0;
                                 for (Lot lot : parkingLots) {
@@ -541,11 +632,9 @@ public class HomeActivity extends BaseActivity {
                                     }
                                 }
                                 markerLoaded = true;
-                                asyncRunning = false;
                             }
                         }
                     } catch (MyException e) {
-                        asyncRunning = false;
                         AlertDialog error = new AlertDialog.Builder(getActivity()).create();
                         error.requestWindowFeature(Window.FEATURE_NO_TITLE);
                         error.setMessage(e.getMessage());
@@ -564,42 +653,35 @@ public class HomeActivity extends BaseActivity {
             //finish declaring async task definition
             //build json object to process login
             //do it in background as it lags when changing connection
-            Handler geocoderHandler = new Handler();
-            Runnable geocoderRunnable = new Runnable() {
-                @Override
-                public void run() {
+            JSONDTO dataToProcess = new JSONDTO();
+            dataToProcess.setServiceName(APIUtils.GET_PARKING_LOTS);
+            dataToProcess.setLatitude(latitude);
+            dataToProcess.setLongitude(longitude);
+            //TODO hardcoded groupType, change to use zoom level
+            dataToProcess.setGroupType("city");
 
-                    JSONDTO dataToProcess = new JSONDTO();
-                    dataToProcess.setServiceName(APIUtils.GET_PARKING_LOTS);
-                    dataToProcess.setLatitude(latitude);
-                    dataToProcess.setLongitude(longitude);
-                    //TODO hardcoded groupType, change to use zoom level
-                    dataToProcess.setGroupType("city");
+            //reverse locate the current city of the user,
+            Geocoder geocoder = new Geocoder(getActivity(), Locale.getDefault());
+            try {
+                List<Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
 
-                    //reverse locate the current city of the user,
-                    Geocoder geocoder = new Geocoder(getActivity(), Locale.getDefault());
-                    try {
-                        List<Address> addresses = geocoder.getFromLocation(latitude, longitude, 1);
-
-                        if (addresses.size() > 0 && addresses.get(0).getLocality() != null) {
-                            dataToProcess.setCriteria(addresses.get(0).getLocality());
-                        } else {
-                            Log.e(TAG, "could not locate current city");
-                            //TODO hardcode to solve bug
-                            dataToProcess.setCriteria("Cyberjaya");
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                        asyncRunning = true;
-                        markerAPICall.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, dataToProcess);
-                    } else {
-                        markerAPICall.execute(dataToProcess);
-                    }
+                if (addresses.size() > 0 && addresses.get(0).getLocality() != null) {
+                    dataToProcess.setCriteria(addresses.get(0).getLocality());
+                } else {
+                    Log.e(TAG, "could not locate current city");
+                    //TODO hardcode to solve bug
+                    dataToProcess.setCriteria("Cyberjaya");
                 }
-            };
-            geocoderHandler.post(geocoderRunnable);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                asyncRunning = true;
+                markerAPICall.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, dataToProcess);
+            } else {
+                asyncRunning = true;
+                markerAPICall.execute(dataToProcess);
+            }
         }
 
         @Override
@@ -627,11 +709,27 @@ public class HomeActivity extends BaseActivity {
         }
 
         @Override
+        public void onStop() {
+            super.onStop();
+        }
+
+        @Override
         public void onPause() {
             super.onPause();
             Log.i("called", "Map --> onPause");
             locationManager.removeUpdates(this);
+            parkHereText.setVisibility(View.INVISIBLE);
+            parkHereButton.setVisibility(View.INVISIBLE);
             displayOrDisableToast(1);
         }
+
+        private TextView getParkHereText(View view) {
+            return (TextView) view.findViewById(R.id.want_to_park_text);
+        }
+
+        private FloatingActionButton getParkHereButton(View view) {
+            return (FloatingActionButton) view.findViewById(R.id.want_to_park_button);
+        }
+
     }
 }

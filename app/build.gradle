@@ -31,4 +31,5 @@ dependencies {
     compile 'com.makeramen:roundedimageview:1.5.0'
     compile 'com.google.code.gson:gson:2.2.4'
     compile 'com.squareup.picasso:picasso:2.4.0'
+    compile 'org.apache.directory.studio:org.apache.commons.lang:2.6'
 }

@@ -65,7 +65,7 @@ public class MonitorLocationService extends Service {
                 if (counter == 1000) {
                     editor.putInt("serviceCounter", 0).apply();
                 }
-                if (APIUtils.calculateDistance(location.getLatitude(), location.getLongitude(), lot.getLatitude(), lot.getLongitude(), "M") <= 200) {
+                if (APIUtils.calculateDistance(location.getLatitude(), location.getLongitude(), lot.getLatitude(), lot.getLongitude(), "M") <= 0.2) {
                     //if is 200 meter around, increase the counter
                     counter++;
                     editor.putInt("serviceCounter", counter).apply();

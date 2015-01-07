@@ -38,7 +38,7 @@ import java.util.concurrent.TimeoutException;
 public class APIUtils {
 
     private static String TAG = "API";
-    public static final String APIURL = "http://192.168.1.3:8080/";
+    public static final String APIURL = "http://192.168.1.2:8080/";
 
     //Service names
     public static final String LOGIN = "LOGIN";

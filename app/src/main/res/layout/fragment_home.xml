@@ -3,18 +3,58 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="@android:color/white"
-                tools:context=".BaseActivity$PlaceholderFragment">
+                tools:context=".BaseActivity$PlaceholderFragment"
+                xmlns:fab="http://schemas.android.com/apk/res-auto"
+    >
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        xmlns:fab="http://schemas.android.com/apk/res-auto">
+        android:id="@+id/root_layout"
+        android:focusable="true"
+        android:clickable="true">
 
         <fragment
             android:id="@+id/map"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            class="com.google.android.gms.maps.MapFragment"/>
+            class="com.project.jinheng.fyp.MyMapFragment"/>
+
+        <TextView
+            android:id="@+id/want_to_park_text"
+            android:layout_width="255dp"
+            android:layout_marginTop="230dp"
+            android:gravity="center_horizontal"
+            android:paddingLeft="5dp"
+            android:paddingRight="5dp"
+            android:paddingEnd="5dp"
+            android:paddingTop="15dp"
+            android:paddingBottom="14dp"
+            android:layout_marginLeft="40dp"
+            android:layout_marginStart="40dp"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_button_normal"
+            android:textSize="12sp"
+            android:textColor="@color/text_white"
+            android:text="@string/park_here"
+            android:visibility="invisible"/>
+
+        <com.melnykov.fab.FloatingActionButton
+            android:id="@+id/want_to_park_button"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="218dp"
+            android:src="@drawable/ic_thumbs_up"
+            android:scaleType="fitCenter"
+            android:layout_marginRight="10dp"
+            android:layout_marginEnd="10dp"
+            android:layout_marginLeft="275dp"
+            android:layout_marginStart="275dp"
+            android:layout_marginBottom="10dp"
+            fab:fab_colorNormal="@color/primary"
+            fab:fab_colorPressed="@color/primary_light"
+            fab:fab_colorRipple="@color/primary_light"
+            android:visibility="invisible"/>
 
         <RelativeLayout
             android:layout_width="wrap_content"
@@ -22,12 +62,6 @@
             android:layout_alignParentBottom="true"
             android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true">
-
-            <TextView
-                android:id="@+id/status_text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="20sp"/>
 
             <com.melnykov.fab.FloatingActionButton
                 android:id="@+id/button_locate_vehicle"
