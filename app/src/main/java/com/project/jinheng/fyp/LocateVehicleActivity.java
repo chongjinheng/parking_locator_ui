@@ -71,7 +71,7 @@ public class LocateVehicleActivity extends BaseActivity {
             View view = inflater.inflate(getArguments().getInt("layout"), container, false);
 
             if (map == null) {
-                map = ((MapFragment) getFragmentManager().findFragmentById(R.id.lot_detail_map)).getMap();
+                map = ((MyMapFragment) getFragmentManager().findFragmentById(R.id.lot_detail_map)).getMap();
                 if (map == null) {
                     Log.d(TAG, "Map not loaded");
                 }
