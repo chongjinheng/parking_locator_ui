@@ -71,7 +71,7 @@ public class LocateVehicleActivity extends BaseActivity {
             View view = inflater.inflate(getArguments().getInt("layout"), container, false);
 
             if (map == null) {
-                map = ((MyMapFragment) getFragmentManager().findFragmentById(R.id.lot_detail_map)).getMap();
+                map = ((MapFragment) getFragmentManager().findFragmentById(R.id.vehicle_detail_map)).getMap();
                 if (map == null) {
                     Log.d(TAG, "Map not loaded");
                 }
@@ -114,10 +114,13 @@ public class LocateVehicleActivity extends BaseActivity {
             SharedPreferences settings = getActivity().getSharedPreferences(SplashScreen.PREFS_NAME, 0);
             String lotJson = settings.getString("tempParkedLocation", null);
             String timeJson = settings.getString("parkedTime", null);
+            SharedPreferences.Editor editor = settings.edit();
+
             lot = (Lot) APIUtils.fromJSON(lotJson, Lot.class);
             //get time passed
             Calendar startedParking = (Calendar) APIUtils.fromJSON(timeJson, Calendar.class);
             Calendar timeNow = Calendar.getInstance();
+            editor.remove("tempParkedLocation").remove("parkedTime").apply();
             long elapsedHours;
             if (DateUtils.isSameDay(startedParking, timeNow)) {
                 elapsedHours = timeNow.get(Calendar.HOUR_OF_DAY) - startedParking.get(Calendar.HOUR_OF_DAY);
