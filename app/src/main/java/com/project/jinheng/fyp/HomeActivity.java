@@ -3,6 +3,7 @@ package com.project.jinheng.fyp;
 import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -127,6 +128,7 @@ public class HomeActivity extends BaseActivity {
         private Marker currentMarker; //to close that marker when other thing clicked
         private Toast connectingToastFragment;
         private final Handler connectingToastHandler = new Handler();
+        private ProgressDialog progressDialog;
         private final Runnable runnable = new Runnable() {
 
             @Override
@@ -199,7 +201,6 @@ public class HomeActivity extends BaseActivity {
                     if (json != null) {
                         Intent intent = new Intent(getActivity(), LocateVehicleActivity.class);
                         startActivity(intent);
-                        getActivity().overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out);
                     } else {
                         Toast.makeText(getActivity(), "You have not parked your vehicle yet!", Toast.LENGTH_SHORT).show();
                     }
@@ -310,6 +311,46 @@ public class HomeActivity extends BaseActivity {
                                 String startTimeJson = APIUtils.toJson(timeNow);
                                 editor.putString("parkedTime", startTimeJson).apply();
                                 Toast.makeText(getActivity(), "Ok! your vehicle is now parked in " + marker.getTitle(), Toast.LENGTH_SHORT).show();
+
+                                //TODO real code
+                                AsyncTask<JSONDTO, Void, JSONDTO> parkVehicleAPICall = new AsyncTask<JSONDTO, Void, JSONDTO>() {
+
+                                    @Override
+                                    protected void onPreExecute() {
+                                        progressDialog = MyProgressDialog.initiate(getActivity());
+                                        progressDialog.show();
+                                    }
+
+                                    @Override
+                                    protected JSONDTO doInBackground(JSONDTO... params) {
+                                        JSONDTO jsonFromServer;
+                                        try{
+
+                                        }catch(Exception e){
+
+                                        }
+                                        return null;
+                                    }
+                                };
+
+                                //finish declaring async task definition
+                                //build json object to process login
+                                //do it in background as it lags when changing connection
+//                                JSONDTO dataToProcess = new JSONDTO();
+//                                dataToProcess.setServiceName(APIUtils.GET_PARKING_LOTS);
+//                                dataToProcess.setLatitude(latitude);
+//                                dataToProcess.setLongitude(longitude);
+//                                //TODO hardcoded groupType, change to use zoom level
+//                                dataToProcess.setGroupType("city");
+//
+//                                //reverse locate the current city of the user,
+//                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+//                                    asyncRunning = true;
+//                                    parkVehicleAPICall.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, dataToProcess);
+//                                } else {
+//                                    asyncRunning = true;
+//                                    parkVehicleAPICall.execute(dataToProcess);
+//                                }
 
                             }
                         });
@@ -459,15 +500,15 @@ public class HomeActivity extends BaseActivity {
                                     public void run() {
                                         //TODO hardcorded to solve bug
                                         ConnectivityManager connManager = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+                                        NetworkInfo data = connManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
                                         NetworkInfo wifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
-                                        if (!wifi.isConnected()) {
+                                        if (!wifi.isConnected() && !data.isConnected()) {
                                             Toast.makeText(getActivity(), "System is currently unavailable. Functionality will be limited.", Toast.LENGTH_LONG).show();
                                         } else {
                                             if (!markerLoaded) {
                                                 map.clear();
                                                 initializeMarkers(latitude, longitude);
                                             }
-
                                         }
                                     }
 

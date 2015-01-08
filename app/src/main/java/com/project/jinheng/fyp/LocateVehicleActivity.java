@@ -133,15 +133,13 @@ public class LocateVehicleActivity extends BaseActivity {
             }
             TextView lotName = (TextView) view.findViewById(R.id.vehicle_lot_name);
             TextView address = (TextView) view.findViewById(R.id.vehicle_lot_address);
-            TextView type = (TextView) view.findViewById(R.id.vehicle_lot_type);
             TextView timeParkedTitle = (TextView) view.findViewById(R.id.detail_vehicle_parked_time_title);
             TextView timeParked = (TextView) view.findViewById(R.id.detail_vehicle_parked_time);
 
             if (lot != null) {
-                if (lotName != null || address != null || type != null || timeParked != null || timeParkedTitle != null) {
+                if (lot.getLotName() != null || lot.getAddress() != null) {
                     lotName.setText(lot.getLotName());
                     address.setText(lot.getAddress());
-                    type.setText(lot.getLotType());
                     //continue here TODO ;aldfjaldskfja;sldkjf
                 } else {
                     showErrorDialog();
@@ -176,6 +174,7 @@ public class LocateVehicleActivity extends BaseActivity {
                         option.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_marker_grey));
                         break;
                 }
+
                 map.addMarker(option);
                 map.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lot.getLatitude(), lot.getLongitude()), 14.0f));
             } else {

@@ -22,7 +22,7 @@
 
         <TextView
             android:id="@+id/want_to_park_text"
-            android:layout_width="255dp"
+            android:layout_width="100dp"
             android:layout_marginTop="230dp"
             android:gravity="center_horizontal"
             android:paddingLeft="5dp"
@@ -30,8 +30,8 @@
             android:paddingEnd="5dp"
             android:paddingTop="15dp"
             android:paddingBottom="14dp"
-            android:layout_marginLeft="40dp"
-            android:layout_marginStart="40dp"
+            android:layout_marginLeft="197dp"
+            android:layout_marginStart="197dp"
             android:layout_height="wrap_content"
             android:background="@drawable/bg_button_normal"
             android:textSize="12sp"
@@ -43,7 +43,7 @@
             android:id="@+id/want_to_park_button"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginTop="218dp"
+            android:layout_marginTop="215dp"
             android:src="@drawable/ic_thumbs_up"
             android:scaleType="fitCenter"
             android:layout_marginRight="10dp"

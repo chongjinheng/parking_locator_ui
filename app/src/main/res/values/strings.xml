@@ -41,8 +41,9 @@
     <string name="nearby">Nearby locations</string>
     <string name="navigate_here">Navigate!</string>
 
-    <string name="park_here">You are close to this parking lot! Park here?</string>
+    <string name="park_here">Park here?</string>
 
     <!--Vehicle-->
     <string name="total_parked_time">Total time parked</string>
+    <string name="parked_in_text">Your vehicle is parked in: </string>
 </resources>
