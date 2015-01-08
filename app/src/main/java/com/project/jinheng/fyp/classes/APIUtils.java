@@ -44,6 +44,9 @@ public class APIUtils {
     public static final String LOGIN = "LOGIN";
     public static final String FB_LOGIN = "FB_LOGIN";
     public static final String GET_PARKING_LOTS = "GET_PARKING_LOTS";
+    public static final String PARK_VEHICLE = "PARK_VEHICLE";
+    public static final String CHECK_VEHICLE = "CHECK_VEHICLE";
+    public static final String REMOVE_VEHICLE = "REMOVE_VEHICLE";
 
     public static String facebookPrintKeyHash(Activity context) {
         PackageInfo packageInfo;
@@ -112,6 +115,7 @@ public class APIUtils {
                 throw new MyException(ErrorStatus.ACCESS_DENIED.getName(), ErrorStatus.ACCESS_DENIED.getErrorMessage());
             } else {
                 String requestJSONString = APIUtils.toJson(dto);
+                Log.d(TAG + "\nJSON sent to server:", requestJSONString);
 
                 //Prepare json to send with http post
                 post.setEntity(new StringEntity(requestJSONString, "UTF-8"));
@@ -129,7 +133,6 @@ public class APIUtils {
                     String data = EntityUtils.toString(entity);
 
                     Log.d(TAG + "\nJSON sent from server:", data);
-
                     JSONDTO returnedDTO = APIUtils.create().fromJson(data, JSONDTO.class);
                     if (returnedDTO.getError() != null) {
                         throw new MyException(returnedDTO.getError().getCode(), returnedDTO.getError().getMessage());

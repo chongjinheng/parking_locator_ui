@@ -27,6 +27,7 @@
                 android:id="@+id/vehicle_park_text"
                 android:layout_width="match_parent"
                 android:layout_height="20dp"
+                android:layout_marginTop="7dp"
                 android:text="@string/parked_in_text"
                 android:textColor="@color/text_white"
                 android:textSize="15sp"
@@ -41,7 +42,7 @@
                 android:layout_below="@id/vehicle_park_text"
                 android:layout_height="28dp"
                 android:textColor="@color/text_white"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="7dp"
                 android:layout_marginRight="5dp"
                 android:layout_marginEnd="5dp"
                 android:layout_marginLeft="7dp"
@@ -75,18 +76,18 @@
             android:clickable="true"
             android:focusable="true">
 
-            <ImageView
+            <TextView
                 android:id="@+id/navigate_to_vehicle_button"
-                android:contentDescription="@string/app_name"
                 android:layout_width="55dp"
-                android:scaleType="fitXY"
                 android:layout_height="50dp"
                 android:layout_marginTop="25dp"
+                android:textSize="12sp"
                 android:layout_marginBottom="2dp"
                 android:layout_marginEnd="15dp"
                 android:layout_marginRight="15dp"
+                android:gravity="center_horizontal"
                 android:layout_centerInParent="true"
-                android:src="@drawable/ic_gps"
+                android:text="@string/remove_and_navigate"
                 android:clickable="true"
                 android:focusable="true"/>
 
@@ -108,9 +109,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textColor="@color/text_black"
+            android:layout_marginTop="10dp"
             android:textStyle="bold"
             android:textSize="20sp"
-            android:text="@string/lot_price"/>
+            android:text="@string/amount_payable"/>
 
         <TextView
             android:id="@+id/detail_vehicle_price"

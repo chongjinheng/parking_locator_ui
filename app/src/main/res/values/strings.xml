@@ -46,4 +46,6 @@
     <!--Vehicle-->
     <string name="total_parked_time">Total time parked</string>
     <string name="parked_in_text">Your vehicle is parked in: </string>
+    <string name="remove_and_navigate">Un-park\n     and Navigate</string>
+    <string name="amount_payable">Amount Payable</string>
 </resources>

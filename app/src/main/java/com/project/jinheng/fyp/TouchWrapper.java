@@ -10,7 +10,7 @@ import android.widget.FrameLayout;
  */
 public class TouchWrapper extends FrameLayout {
     private long lastTouched = 0;
-    private static final long SCROLL_TIME = 90L;
+    private static final long SCROLL_TIME = 110L;
 
     public TouchWrapper(Context context) {
         super(context);

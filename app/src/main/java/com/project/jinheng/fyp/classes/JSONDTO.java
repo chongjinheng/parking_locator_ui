@@ -15,6 +15,8 @@ public class JSONDTO {
     private Integer loginMode;
     private JSONError error;
 
+    private Long ID;
+
     /**
      * * Maps ***
      */
@@ -23,6 +25,49 @@ public class JSONDTO {
     private List<Lot> parkingLots;
     private String groupType;
     private String criteria;
+
+    /**
+     * Parking *
+     */
+    private Slot slot;
+    private Boolean alreadyParkedThere;
+    private Boolean forceRepark;
+
+    public Boolean getAlreadyParkedThere() {
+        return alreadyParkedThere;
+    }
+
+    public Boolean isForceRepark() {
+        return forceRepark;
+    }
+
+    public void setForceRepark(Boolean forceRepark) {
+        this.forceRepark = forceRepark;
+    }
+
+    public Boolean isAlreadyParkedThere() {
+        return alreadyParkedThere;
+    }
+
+    public void setAlreadyParkedThere(Boolean alreadyParkedThere) {
+        this.alreadyParkedThere = alreadyParkedThere;
+    }
+
+    public Slot getSlot() {
+        return slot;
+    }
+
+    public void setSlot(Slot slot) {
+        this.slot = slot;
+    }
+
+    public Long getID() {
+        return ID;
+    }
+
+    public void setID(Long ID) {
+        this.ID = ID;
+    }
 
     public String getGroupType() {
         return groupType;

@@ -5,7 +5,7 @@ package com.project.jinheng.fyp.classes;
  */
 public class Lot {
 
-    private Integer id;
+    private Integer lotID;
     private String lotName;
     private String lotType;
     private Double longitude;
@@ -69,12 +69,12 @@ public class Lot {
         this.nearbyAttraction = nearbyAttraction;
     }
 
-    public Integer getId() {
-        return id;
+    public Integer getlotID() {
+        return lotID;
     }
 
-    public void setId(Integer id) {
-        this.id = id;
+    public void setLotID(Integer id) {
+        this.lotID = id;
     }
 
     public String getLotName() {
