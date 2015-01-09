@@ -51,7 +51,6 @@ public class LoginActivity extends Activity {
     private String loginEmail; //save into preference
     private String facebookUserName; //save into preference
     private String facebookUserEmail; //save into preference
-    private String facebookPictureJson; //save into preference
 
     private Session.StatusCallback callback = new Session.StatusCallback() {
         @Override
@@ -128,14 +127,6 @@ public class LoginActivity extends Activity {
                         tempDTO.setFacebookUID(facebookUID);
                         tempDTO.setName(facebookUserName);
                         jsonFromServer = APIUtils.processAPICalls(tempDTO);
-
-                        Log.d(TAG, "Loading profile picture");
-                        String urlString = "https://graph.facebook.com/" + facebookUID + "/picture";
-                        URL url = new URL(urlString);
-                        Bitmap facebookUserPicture = BitmapFactory.decodeStream(url.openConnection().getInputStream());
-                        facebookPictureJson = APIUtils.toJson(facebookUserPicture);
-                        Log.d(TAG, "Profile picture loaded");
-
                         return jsonFromServer;
 
                     } catch (MyException e) {
@@ -398,7 +389,6 @@ public class LoginActivity extends Activity {
             editor.putString("facebookUID", facebookUID);
             editor.putString("name", facebookUserName);
             editor.putString("email", facebookUserEmail);
-            editor.putString("picture", facebookPictureJson);
         }
         if (loginEmail != null) {
             editor.putBoolean("facebookLog", false);

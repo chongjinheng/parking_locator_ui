@@ -86,29 +86,33 @@ public class HomeActivity extends BaseActivity {
     @Override
     public void onBackPressed() {
 
-        Toast exitConfirmationToast = Toast.makeText(this, "Press back again to exit the application.", Toast.LENGTH_SHORT);
-
-        final int interval = 2000;
-        // if info window is opened, close it instead of trying to exit
-        if (justToPassAMarker != null) {
-            justToPassAMarker.hideInfoWindow();
-            justToPassAButton.setVisibility(View.INVISIBLE);
-            justToPassAText.setVisibility(View.INVISIBLE);
-            justToPassAText = null;
-            justToPassAButton = null;
-            justToPassAMarker = null;
+        if (BaseActivity.drawerOpen) {
+            super.onBackPressed();
         } else {
-            // exit the application by pressing back 2 twice
-            if (timeWhenBackPressed + interval > System.currentTimeMillis()) {
-                super.onBackPressed();
-                finish();
-            } else {
-                Log.d(TAG, "Back button pressed once");
-                exitConfirmationToast.show();
-            }
-            timeWhenBackPressed = System.currentTimeMillis();
-        }
+            Toast exitConfirmationToast = Toast.makeText(this, "Press back again to exit the application.", Toast.LENGTH_SHORT);
 
+            final int interval = 2000;
+            // if info window is opened, close it instead of trying to exit
+            if (justToPassAMarker != null) {
+                justToPassAMarker.hideInfoWindow();
+                justToPassAButton.setVisibility(View.INVISIBLE);
+                justToPassAText.setVisibility(View.INVISIBLE);
+                justToPassAText = null;
+                justToPassAButton = null;
+                justToPassAMarker = null;
+            } else {
+                // exit the application by pressing back 2 twice
+                if (timeWhenBackPressed + interval > System.currentTimeMillis()) {
+                    super.onBackPressed();
+                    finish();
+                } else {
+                    Log.d(TAG, "Back button pressed once");
+                    exitConfirmationToast.show();
+                }
+                timeWhenBackPressed = System.currentTimeMillis();
+            }
+
+        }
     }
 
     public static class HomeFragment extends Fragment implements LocationListener {
@@ -346,235 +350,223 @@ public class HomeActivity extends BaseActivity {
                                                  marker.showInfoWindow();
                                                  currentMarker = marker;
                                                  justToPassAMarker = marker;
+                                                 justToPassAButton = parkHereButton;
+                                                 justToPassAText = parkHereText;
 
-                                                 //ask user wanna park or not if current marker is near user
-                                                 if (APIUtils.calculateDistance(location.getLatitude(), location.getLongitude(), marker.getPosition().latitude, marker.getPosition().longitude, "M") <= 0.2) {
-                                                     parkHereText.setVisibility(View.VISIBLE);
-                                                     justToPassAText = parkHereText;
-                                                     parkHereButton.setVisibility(View.VISIBLE);
-                                                     justToPassAButton = parkHereButton;
-                                                     parkHereButton.setOnClickListener(new View.OnClickListener() {
-                                                         @Override
-                                                         public void onClick(View v) {
-                                                             //TODO temporarily use shared preference first
-//                                SharedPreferences settings = getActivity().getSharedPreferences(SplashScreen.PREFS_NAME, 0);
-//                                SharedPreferences.Editor editor = settings.edit();
-//                                editor.putString("tempParkedLocation", json).apply();
-//
-//                                String startTimeJson = APIUtils.toJson(parkedTime);
-//                                editor.putString("parkedTime", startTimeJson).apply();
-//                                Toast.makeText(getActivity(), "Ok! Your vehicle is now parked in " + marker.getTitle(), Toast.LENGTH_SHORT).show();
-                                                             //TODO real code
-
-                                                             final AsyncTask<JSONDTO, Void, JSONDTO> reparkVehicle = new AsyncTask<JSONDTO, Void, JSONDTO>() {
-                                                                 @Override
-                                                                 protected void onPreExecute() {
-                                                                     progressDialog = MyProgressDialog.initiate(getActivity());
-                                                                     progressDialog.show();
-                                                                 }
-
-                                                                 @Override
-                                                                 protected JSONDTO doInBackground(JSONDTO... params) {
-                                                                     JSONDTO jsonFromServer;
-                                                                     try {
-                                                                         jsonFromServer = APIUtils.processAPICalls(params[0]);
-                                                                         return jsonFromServer;
-
-                                                                     } catch (MyException e) {
-                                                                         Log.e(TAG, e.getMessage());
-                                                                         JSONDTO returnDTO = new JSONDTO();
-                                                                         JSONError error = new JSONError(e.getError(), e.getMessage());
-                                                                         returnDTO.setError(error);
-                                                                         return returnDTO;
-                                                                     } catch (Exception e) {
-                                                                         JSONDTO returnDTO = new JSONDTO();
-                                                                         e.printStackTrace();
-                                                                         Log.e(TAG, "Exception occurred when calling API");
-                                                                         JSONError error = new JSONError(ErrorStatus.ACCESS_DENIED.getName(), ErrorStatus.ACCESS_DENIED.getErrorMessage());
-                                                                         returnDTO.setError(error);
-                                                                         return returnDTO;
+                                                 if (location != null) {
+                                                     //ask user wanna park or not if current marker is near user
+                                                     if (APIUtils.calculateDistance(location.getLatitude(), location.getLongitude(), marker.getPosition().latitude, marker.getPosition().longitude, "M") <= 0.2) {
+                                                         parkHereText.setVisibility(View.VISIBLE);
+                                                         parkHereButton.setVisibility(View.VISIBLE);
+                                                         parkHereButton.setOnClickListener(new View.OnClickListener() {
+                                                             @Override
+                                                             public void onClick(View v) {
+                                                                 final AsyncTask<JSONDTO, Void, JSONDTO> reparkVehicle = new AsyncTask<JSONDTO, Void, JSONDTO>() {
+                                                                     @Override
+                                                                     protected void onPreExecute() {
+                                                                         progressDialog = MyProgressDialog.initiate(getActivity());
+                                                                         progressDialog.show();
                                                                      }
-                                                                 }
 
-                                                                 @Override
-                                                                 protected void onPostExecute(JSONDTO jsondto) {
-                                                                     try {
-                                                                         asyncRunning = false;
-                                                                         if (jsondto.getError() != null) {
-                                                                             throw new MyException(jsondto.getError().getCode(), jsondto.getError().getMessage());
-                                                                         }
-                                                                         Toast.makeText(getActivity(), "OK! Your vehicle is now parked in " + marker.getTitle(), Toast.LENGTH_SHORT).show();
-                                                                         if (progressDialog != null) {
-                                                                             progressDialog.dismiss();
-                                                                         }
+                                                                     @Override
+                                                                     protected JSONDTO doInBackground(JSONDTO... params) {
+                                                                         JSONDTO jsonFromServer;
+                                                                         try {
+                                                                             jsonFromServer = APIUtils.processAPICalls(params[0]);
+                                                                             return jsonFromServer;
 
-                                                                     } catch (MyException e) {
-                                                                         AlertDialog error = new AlertDialog.Builder(getActivity()).create();
-                                                                         error.requestWindowFeature(Window.FEATURE_NO_TITLE);
-                                                                         error.setMessage(e.getMessage());
-                                                                         error.setInverseBackgroundForced(true);
-                                                                         error.setButton(DialogInterface.BUTTON_NEUTRAL, "Something went wrong, please try again later", new DialogInterface.OnClickListener() {
-                                                                             @Override
-                                                                             public void onClick(DialogInterface dialog, int which) {
-                                                                                 getActivity().finish();
+                                                                         } catch (MyException e) {
+                                                                             Log.e(TAG, e.getMessage());
+                                                                             JSONDTO returnDTO = new JSONDTO();
+                                                                             JSONError error = new JSONError(e.getError(), e.getMessage());
+                                                                             returnDTO.setError(error);
+                                                                             return returnDTO;
+                                                                         } catch (Exception e) {
+                                                                             JSONDTO returnDTO = new JSONDTO();
+                                                                             e.printStackTrace();
+                                                                             Log.e(TAG, "Exception occurred when calling API");
+                                                                             JSONError error = new JSONError(ErrorStatus.ACCESS_DENIED.getName(), ErrorStatus.ACCESS_DENIED.getErrorMessage());
+                                                                             returnDTO.setError(error);
+                                                                             return returnDTO;
+                                                                         }
+                                                                     }
+
+                                                                     @Override
+                                                                     protected void onPostExecute(JSONDTO jsondto) {
+                                                                         try {
+                                                                             asyncRunning = false;
+                                                                             if (jsondto.getError() != null) {
+                                                                                 throw new MyException(jsondto.getError().getCode(), jsondto.getError().getMessage());
                                                                              }
-                                                                         });
-                                                                         error.show();
-
-                                                                         if (progressDialog != null) {
-                                                                             progressDialog.dismiss();
-                                                                         }
-                                                                     }
-                                                                 }
-                                                             };
-
-                                                             final AsyncTask<JSONDTO, Void, JSONDTO> parkVehicleAPICall = new AsyncTask<JSONDTO, Void, JSONDTO>() {
-                                                                 @Override
-                                                                 protected void onPreExecute() {
-                                                                     progressDialog = MyProgressDialog.initiate(getActivity());
-                                                                     progressDialog.show();
-                                                                 }
-
-                                                                 @Override
-                                                                 protected JSONDTO doInBackground(JSONDTO... params) {
-                                                                     JSONDTO jsonFromServer;
-                                                                     try {
-                                                                         jsonFromServer = APIUtils.processAPICalls(params[0]);
-                                                                         return jsonFromServer;
-
-                                                                     } catch (MyException e) {
-                                                                         Log.e(TAG, e.getMessage());
-                                                                         JSONDTO returnDTO = new JSONDTO();
-                                                                         JSONError error = new JSONError(e.getError(), e.getMessage());
-                                                                         returnDTO.setError(error);
-                                                                         return returnDTO;
-                                                                     } catch (Exception e) {
-                                                                         JSONDTO returnDTO = new JSONDTO();
-                                                                         e.printStackTrace();
-                                                                         Log.e(TAG, "Exception occurred when calling API");
-                                                                         JSONError error = new JSONError(ErrorStatus.ACCESS_DENIED.getName(), ErrorStatus.ACCESS_DENIED.getErrorMessage());
-                                                                         returnDTO.setError(error);
-                                                                         return returnDTO;
-                                                                     }
-                                                                 }
-
-                                                                 @Override
-                                                                 protected void onPostExecute(JSONDTO jsondto) {
-                                                                     try {
-                                                                         asyncRunning = false;
-                                                                         if (jsondto.getError() != null) {
-                                                                             throw new MyException(jsondto.getError().getCode(), jsondto.getError().getMessage());
-                                                                         } else if (jsondto.isAlreadyParkedThere()) {
-                                                                             parkHereButton.setVisibility(View.INVISIBLE);
-                                                                             parkHereText.setVisibility(View.INVISIBLE);
-                                                                             Toast.makeText(getActivity(), "Your vehicle is already parked here!", Toast.LENGTH_SHORT).show();
-                                                                         } else {
-                                                                             parkHereButton.setVisibility(View.INVISIBLE);
-                                                                             parkHereText.setVisibility(View.INVISIBLE);
                                                                              Toast.makeText(getActivity(), "OK! Your vehicle is now parked in " + marker.getTitle(), Toast.LENGTH_SHORT).show();
-                                                                         }
-                                                                         if (progressDialog != null) {
-                                                                             progressDialog.dismiss();
-                                                                         }
-
-                                                                     } catch (MyException e) {
-                                                                         AlertDialog error = new AlertDialog.Builder(getActivity()).create();
-                                                                         error.requestWindowFeature(Window.FEATURE_NO_TITLE);
-                                                                         error.setMessage(e.getMessage());
-                                                                         error.setInverseBackgroundForced(true);
-                                                                         error.setButton(DialogInterface.BUTTON_POSITIVE, "Yes", new DialogInterface.OnClickListener() {
-                                                                             @Override
-                                                                             public void onClick(DialogInterface dialog, int which) {
-                                                                                 //TODO remove from slot table using another async
-                                                                                 JSONDTO dataToProcess = new JSONDTO();
-                                                                                 dataToProcess.setServiceName(APIUtils.PARK_VEHICLE);
-                                                                                 SharedPreferences settings = getActivity().getSharedPreferences(SplashScreen.PREFS_NAME, 0);
-                                                                                 Lot parkedLot = parkingLots.get(Integer.valueOf(marker.getSnippet()));
-                                                                                 Date parkedTime = new Date();
-                                                                                 String userEmail = settings.getString("email", null);
-                                                                                 if (userEmail == null) {
-                                                                                     Log.e(TAG, "Abnormal behavior, user email does not exist");
-                                                                                 }
-                                                                                 //to be saved in db
-                                                                                 Slot parkedSlot = new Slot();
-                                                                                 parkedSlot.setStatus("U");
-                                                                                 parkedSlot.setParkTime(parkedTime);
-                                                                                 parkedSlot.setLot(parkedLot);
-
-                                                                                 dataToProcess.setSlot(parkedSlot);
-                                                                                 dataToProcess.setEmail(userEmail);
-                                                                                 dataToProcess.setForceRepark(true);
-                                                                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                                                                                     asyncRunning = true;
-                                                                                     reparkVehicle.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, dataToProcess);
-                                                                                 } else {
-                                                                                     asyncRunning = true;
-                                                                                     reparkVehicle.execute(dataToProcess);
-                                                                                 }
-                                                                                 parkHereButton.setVisibility(View.INVISIBLE);
-                                                                                 parkHereText.setVisibility(View.INVISIBLE);
+                                                                             if (progressDialog != null) {
+                                                                                 progressDialog.dismiss();
                                                                              }
-                                                                         });
-                                                                         error.setButton(DialogInterface.BUTTON_NEGATIVE, "No", new DialogInterface.OnClickListener() {
-                                                                             @Override
-                                                                             public void onClick(DialogInterface dialog, int which) {
-                                                                                 parkHereButton.setVisibility(View.INVISIBLE);
-                                                                                 parkHereText.setVisibility(View.INVISIBLE);
+
+                                                                         } catch (MyException e) {
+                                                                             AlertDialog error = new AlertDialog.Builder(getActivity()).create();
+                                                                             error.requestWindowFeature(Window.FEATURE_NO_TITLE);
+                                                                             error.setMessage(e.getMessage());
+                                                                             error.setInverseBackgroundForced(true);
+                                                                             error.setButton(DialogInterface.BUTTON_NEUTRAL, "Something went wrong, please try again later", new DialogInterface.OnClickListener() {
+                                                                                 @Override
+                                                                                 public void onClick(DialogInterface dialog, int which) {
+                                                                                     getActivity().finish();
+                                                                                 }
+                                                                             });
+                                                                             error.show();
+
+                                                                             if (progressDialog != null) {
+                                                                                 progressDialog.dismiss();
                                                                              }
-                                                                         });
-                                                                         error.show();
-
-                                                                         if (progressDialog != null) {
-                                                                             progressDialog.dismiss();
                                                                          }
-
                                                                      }
+                                                                 };
+
+                                                                 final AsyncTask<JSONDTO, Void, JSONDTO> parkVehicleAPICall = new AsyncTask<JSONDTO, Void, JSONDTO>() {
+                                                                     @Override
+                                                                     protected void onPreExecute() {
+                                                                         progressDialog = MyProgressDialog.initiate(getActivity());
+                                                                         progressDialog.show();
+                                                                     }
+
+                                                                     @Override
+                                                                     protected JSONDTO doInBackground(JSONDTO... params) {
+                                                                         JSONDTO jsonFromServer;
+                                                                         try {
+                                                                             jsonFromServer = APIUtils.processAPICalls(params[0]);
+                                                                             return jsonFromServer;
+
+                                                                         } catch (MyException e) {
+                                                                             Log.e(TAG, e.getMessage());
+                                                                             JSONDTO returnDTO = new JSONDTO();
+                                                                             JSONError error = new JSONError(e.getError(), e.getMessage());
+                                                                             returnDTO.setError(error);
+                                                                             return returnDTO;
+                                                                         } catch (Exception e) {
+                                                                             JSONDTO returnDTO = new JSONDTO();
+                                                                             e.printStackTrace();
+                                                                             Log.e(TAG, "Exception occurred when calling API");
+                                                                             JSONError error = new JSONError(ErrorStatus.ACCESS_DENIED.getName(), ErrorStatus.ACCESS_DENIED.getErrorMessage());
+                                                                             returnDTO.setError(error);
+                                                                             return returnDTO;
+                                                                         }
+                                                                     }
+
+                                                                     @Override
+                                                                     protected void onPostExecute(JSONDTO jsondto) {
+                                                                         try {
+                                                                             asyncRunning = false;
+                                                                             if (jsondto.getError() != null) {
+                                                                                 throw new MyException(jsondto.getError().getCode(), jsondto.getError().getMessage());
+                                                                             } else if (jsondto.isAlreadyParkedThere()) {
+                                                                                 parkHereButton.setVisibility(View.INVISIBLE);
+                                                                                 parkHereText.setVisibility(View.INVISIBLE);
+                                                                                 Toast.makeText(getActivity(), "Your vehicle is already parked here!", Toast.LENGTH_SHORT).show();
+                                                                             } else {
+                                                                                 parkHereButton.setVisibility(View.INVISIBLE);
+                                                                                 parkHereText.setVisibility(View.INVISIBLE);
+                                                                                 Toast.makeText(getActivity(), "OK! Your vehicle is now parked in " + marker.getTitle(), Toast.LENGTH_SHORT).show();
+                                                                             }
+                                                                             if (progressDialog != null) {
+                                                                                 progressDialog.dismiss();
+                                                                             }
+
+                                                                         } catch (MyException e) {
+                                                                             AlertDialog error = new AlertDialog.Builder(getActivity()).create();
+                                                                             error.requestWindowFeature(Window.FEATURE_NO_TITLE);
+                                                                             error.setMessage(e.getMessage());
+                                                                             error.setInverseBackgroundForced(true);
+                                                                             error.setButton(DialogInterface.BUTTON_POSITIVE, "Yes", new DialogInterface.OnClickListener() {
+                                                                                 @Override
+                                                                                 public void onClick(DialogInterface dialog, int which) {
+                                                                                     //TODO remove from slot table using another async
+                                                                                     JSONDTO dataToProcess = new JSONDTO();
+                                                                                     dataToProcess.setServiceName(APIUtils.PARK_VEHICLE);
+                                                                                     SharedPreferences settings = getActivity().getSharedPreferences(SplashScreen.PREFS_NAME, 0);
+                                                                                     Lot parkedLot = parkingLots.get(Integer.valueOf(marker.getSnippet()));
+                                                                                     Date parkedTime = new Date();
+                                                                                     String userEmail = settings.getString("email", null);
+                                                                                     if (userEmail == null) {
+                                                                                         Log.e(TAG, "Abnormal behavior, user email does not exist");
+                                                                                     }
+                                                                                     //to be saved in db
+                                                                                     Slot parkedSlot = new Slot();
+                                                                                     parkedSlot.setStatus("U");
+                                                                                     parkedSlot.setParkTime(parkedTime);
+                                                                                     parkedSlot.setLot(parkedLot);
+
+                                                                                     dataToProcess.setSlot(parkedSlot);
+                                                                                     dataToProcess.setEmail(userEmail);
+                                                                                     dataToProcess.setForceRepark(true);
+                                                                                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                                                                                         asyncRunning = true;
+                                                                                         reparkVehicle.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, dataToProcess);
+                                                                                     } else {
+                                                                                         asyncRunning = true;
+                                                                                         reparkVehicle.execute(dataToProcess);
+                                                                                     }
+                                                                                     parkHereButton.setVisibility(View.INVISIBLE);
+                                                                                     parkHereText.setVisibility(View.INVISIBLE);
+                                                                                 }
+                                                                             });
+                                                                             error.setButton(DialogInterface.BUTTON_NEGATIVE, "No", new DialogInterface.OnClickListener() {
+                                                                                 @Override
+                                                                                 public void onClick(DialogInterface dialog, int which) {
+                                                                                     parkHereButton.setVisibility(View.INVISIBLE);
+                                                                                     parkHereText.setVisibility(View.INVISIBLE);
+                                                                                 }
+                                                                             });
+                                                                             error.show();
+
+                                                                             if (progressDialog != null) {
+                                                                                 progressDialog.dismiss();
+                                                                             }
+
+                                                                         }
+                                                                     }
+
+                                                                 };
+
+                                                                 //finish declaring async task definition
+                                                                 //build json object to process login
+                                                                 //do it in background as it lags when changing connection
+                                                                 JSONDTO dataToProcess = new JSONDTO();
+                                                                 dataToProcess.setServiceName(APIUtils.PARK_VEHICLE);
+                                                                 SharedPreferences settings = getActivity().getSharedPreferences(SplashScreen.PREFS_NAME, 0);
+                                                                 Lot parkedLot = parkingLots.get(Integer.valueOf(marker.getSnippet()));
+                                                                 Date parkedTime = new Date();
+                                                                 String userEmail = settings.getString("email", null);
+                                                                 if (userEmail == null) {
+                                                                     Log.e(TAG, "Abnormal behavior, user email does not exist");
                                                                  }
+                                                                 //to be saved in db
+                                                                 Slot parkedSlot = new Slot();
+                                                                 parkedSlot.setStatus("U");
+                                                                 parkedSlot.setParkTime(parkedTime);
+                                                                 parkedSlot.setLot(parkedLot);
+                                                                 parkedSlot.setParkTime(parkedTime);
 
-                                                             };
+                                                                 dataToProcess.setSlot(parkedSlot);
+                                                                 dataToProcess.setEmail(userEmail);
+                                                                 dataToProcess.setForceRepark(false);
 
-                                                             //finish declaring async task definition
-                                                             //build json object to process login
-                                                             //do it in background as it lags when changing connection
-                                                             JSONDTO dataToProcess = new JSONDTO();
-                                                             dataToProcess.setServiceName(APIUtils.PARK_VEHICLE);
-                                                             SharedPreferences settings = getActivity().getSharedPreferences(SplashScreen.PREFS_NAME, 0);
-                                                             Lot parkedLot = parkingLots.get(Integer.valueOf(marker.getSnippet()));
-                                                             Date parkedTime = new Date();
-                                                             String userEmail = settings.getString("email", null);
-                                                             if (userEmail == null) {
-                                                                 Log.e(TAG, "Abnormal behavior, user email does not exist");
+                                                                 //reverse locate the current city of the user,
+                                                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                                                                     asyncRunning = true;
+                                                                     parkVehicleAPICall.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, dataToProcess);
+                                                                 } else {
+                                                                     asyncRunning = true;
+                                                                     parkVehicleAPICall.execute(dataToProcess);
+                                                                 }
                                                              }
 
-                                                             //to be saved in db
-                                                             Slot parkedSlot = new Slot();
-                                                             parkedSlot.setStatus("U");
-                                                             parkedSlot.setParkTime(parkedTime);
-                                                             parkedSlot.setLot(parkedLot);
-                                                             parkedSlot.setParkTime(parkedTime);
-
-                                                             dataToProcess.setSlot(parkedSlot);
-                                                             dataToProcess.setEmail(userEmail);
-                                                             dataToProcess.setForceRepark(false);
-
-                                                             //reverse locate the current city of the user,
-                                                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                                                                 asyncRunning = true;
-                                                                 parkVehicleAPICall.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, dataToProcess);
-                                                             } else {
-                                                                 asyncRunning = true;
-                                                                 parkVehicleAPICall.execute(dataToProcess);
-                                                             }
-                                                         }
-
-                                                     });
-                                                 } else
-
-                                                 {
-                                                     parkHereButton.setVisibility(View.INVISIBLE);
-                                                     parkHereText.setVisibility(View.INVISIBLE);
+                                                         });
+                                                     } else {
+                                                         parkHereButton.setVisibility(View.INVISIBLE);
+                                                         parkHereText.setVisibility(View.INVISIBLE);
+                                                     }
                                                  }
-
                                                  return false;
                                              }
                                          }

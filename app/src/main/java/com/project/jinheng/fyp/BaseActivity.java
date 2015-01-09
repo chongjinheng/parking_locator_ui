@@ -15,6 +15,7 @@ import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -22,8 +23,6 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.facebook.Session;
-import com.melnykov.fab.FloatingActionButton;
-import com.project.jinheng.fyp.classes.APIUtils;
 import com.project.jinheng.fyp.classes.adapters.DrawerListAdapter;
 import com.project.jinheng.fyp.classes.adapters.Header;
 import com.project.jinheng.fyp.classes.adapters.Item;
@@ -38,6 +37,8 @@ import java.util.List;
 public abstract class BaseActivity extends ActionBarActivity implements android.support.v7.widget.SearchView.OnQueryTextListener {
 
     //declared global as need to use in multiple methods
+    public static boolean drawerOpen = false;
+
     private Toolbar toolbar;
     private DrawerLayout drawerLayout;
     private ActionBarDrawerToggle actionBarDrawerToggle;
@@ -61,6 +62,7 @@ public abstract class BaseActivity extends ActionBarActivity implements android.
             @Override
             public void onDrawerOpened(View drawerView) {
                 super.onDrawerOpened(drawerView);
+                drawerOpen = true;
                 invalidateOptionsMenu();
                 syncState();
             }
@@ -68,6 +70,7 @@ public abstract class BaseActivity extends ActionBarActivity implements android.
             @Override
             public void onDrawerClosed(View drawerView) {
                 super.onDrawerClosed(drawerView);
+                drawerOpen = false;
                 invalidateOptionsMenu();
                 syncState();
             }
@@ -128,7 +131,7 @@ public abstract class BaseActivity extends ActionBarActivity implements android.
 
         searchView.setOnQueryTextListener(this);
 
-        //close searchview when back pressed
+        //close search view when back pressed
         searchView.setOnQueryTextFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View v, boolean hasFocus) {
@@ -138,6 +141,24 @@ public abstract class BaseActivity extends ActionBarActivity implements android.
                 }
             }
         });
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (drawerLayout.isDrawerOpen(Gravity.START)) {
+            drawerLayout.closeDrawer(Gravity.START);
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        if (drawerLayout.isDrawerOpen(Gravity.START)) {
+            drawerLayout.closeDrawer(Gravity.START);
+        } else {
+            super.onResume();
+        }
     }
 
     public boolean onQueryTextChange(String newText) {
@@ -206,12 +227,9 @@ public abstract class BaseActivity extends ActionBarActivity implements android.
             String facebookUID = settings.getString("facebookUID", null);
             String facebookUserName = settings.getString("name", null);
             String facebookEmail = settings.getString("email", null);
-            String profilePictureJSON = settings.getString("picture", null);
-            if (facebookUID != null || facebookUserName != null || profilePictureJSON != null || facebookEmail != null) {
-                //load json to bitmap
-//                Bitmap facebookProfilePicture = (Bitmap) APIUtils.fromJSON(profilePictureJSON, Bitmap.class);
-                //TODO i can't solve this shit
-                items.add(new Header(R.drawable.ic_user_dp, facebookUserName, facebookEmail));
+            if (facebookUID != null || facebookUserName != null || facebookEmail != null) {
+                String profilePictureLink = "https://graph.facebook.com/" + facebookUID + "/picture?height=200&width=200";
+                items.add(new Header(profilePictureLink, facebookUserName, facebookEmail));
             } else {
                 showErrorDialog();
 
@@ -220,6 +238,7 @@ public abstract class BaseActivity extends ActionBarActivity implements android.
             String userName = settings.getString("name", null);
             String userEmail = settings.getString("email", null);
             if (userName != null || userEmail != null) {
+
                 items.add(new Header(R.drawable.ic_user_dp, userName, userEmail));
             }
         }

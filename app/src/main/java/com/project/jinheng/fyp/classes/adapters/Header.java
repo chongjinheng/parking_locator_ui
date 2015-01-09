@@ -1,28 +1,18 @@
 package com.project.jinheng.fyp.classes.adapters;
 
 import android.content.Context;
-import android.content.ContextWrapper;
 import android.graphics.Bitmap;
-import android.net.Uri;
-import android.provider.MediaStore;
-import android.util.Log;
+import android.graphics.BitmapShader;
+import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.makeramen.RoundedImageView;
-import com.makeramen.RoundedTransformationBuilder;
 import com.project.jinheng.fyp.R;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Transformation;
-
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.net.URI;
 
 /**
  * Created by JinHeng on 11/24/2014.
@@ -31,14 +21,14 @@ public class Header implements Item {
 
     private final String name;
     private final String email;
-    private final Bitmap displayPicture;
+    private final String displayPictureLink;
     private final int resource;
 
     Context context;
 
-    public Header(Bitmap displayPicture, String name, String email) {
+    public Header(String displayPictureLink, String name, String email) {
         this.name = name;
-        this.displayPicture = displayPicture;
+        this.displayPictureLink = displayPictureLink;
         this.email = email;
         this.resource = 0;
     }
@@ -47,7 +37,7 @@ public class Header implements Item {
         this.name = name;
         this.resource = resource;
         this.email = email;
-        this.displayPicture = null;
+        this.displayPictureLink = null;
     }
 
     @Override
@@ -66,39 +56,54 @@ public class Header implements Item {
         }
         context = view.getContext();
 
-        final RoundedImageView imageView = (RoundedImageView) view.findViewById(R.id.user_dp);
+        final ImageView imageView = (ImageView) view.findViewById(R.id.user_dp);
         TextView textView = (TextView) view.findViewById(R.id.user_name);
         TextView emailText = (TextView) view.findViewById(R.id.user_email);
 
-        Transformation transformation = new RoundedTransformationBuilder().scaleType(ImageView.ScaleType.FIT_XY).build();
-//        if (displayPicture != null) {
-//            Uri uri = Uri.parse(getImagePath(context, displayPicture));
-//            Picasso.with(context).load(uri).fit().transform(transformation).into(imageView);
-//        } else if (resource != 0) {
+        Transformation transformation = new Transformation() {
+            @Override
+            public Bitmap transform(Bitmap source) {
+                int size = Math.min(source.getWidth(), source.getHeight());
+                int x = (source.getWidth() - size) / 2;
+                int y = (source.getHeight() - size) / 2;
+
+                Bitmap squaredBitmap = Bitmap.createBitmap(source, x, y, size, size);
+                if (squaredBitmap != source) {
+                    source.recycle();
+                }
+
+                Bitmap bitmap = Bitmap.createBitmap(size, size, source.getConfig());
+                Canvas canvas = new Canvas(bitmap);
+                Paint paint = new Paint();
+                BitmapShader shader = new BitmapShader(squaredBitmap, BitmapShader.TileMode.CLAMP, BitmapShader.TileMode.CLAMP);
+                paint.setShader(shader);
+                paint.setAntiAlias(true);
+
+                float r = size / 2f;
+                canvas.drawCircle(r, r, r, paint);
+
+                squaredBitmap.recycle();
+                return bitmap;
+            }
+
+            @Override
+            public String key() {
+                return "circle";
+            }
+        };
+
+        if (displayPictureLink != null) {
+            Picasso.with(context).load(displayPictureLink).transform(transformation).fit().into(imageView);
+            textView.setText(name);
+            emailText.setText(email);
+        } else if (resource != 0) {
             imageView.setBackgroundResource(resource);
-//        }
-        textView.setText(name);
-        emailText.setText(email);
+            textView.setText(name);
+            emailText.setText(email);
 
+            return view;
+
+        }
         return view;
-
     }
-
-//    public String getImagePath(Context inContext, Bitmap image) {
-//
-//        ContextWrapper cw = new ContextWrapper(inContext);
-//        //get path to app_data/image
-//        File directory = cw.getDir("images", Context.MODE_PRIVATE);
-//        File mypath = new File(directory, "profile.jpg");
-//        try {
-//            FileOutputStream fos = new FileOutputStream(mypath);
-//            image.compress(Bitmap.CompressFormat.JPEG, 100, fos);
-//            fos.close();
-//
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//        Log.e("hahahahahhababababababba12345676", directory.getAbsolutePath());
-//        return directory.getAbsolutePath() + "/profile.jpg";
-//    }
 }
