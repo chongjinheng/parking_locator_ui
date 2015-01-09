@@ -29,6 +29,8 @@
     <string name="title_Home">Home Page</string>
     <string name="title_Register">Register Page</string>
     <string name="title_ForgotPassword">Forgot Password</string>
+    <string name="settings">Settings</string>
+    <string name="settings_main">Settings</string>
 
     <!--Facebook-->
     <string name="facebook_app_id">745816718838207</string>
@@ -48,4 +50,14 @@
     <string name="parked_in_text">Your vehicle is parked in: </string>
     <string name="remove_and_navigate">Un-park\n     and Navigate</string>
     <string name="amount_payable">Amount Payable</string>
+
+    <!--Settings-->
+    <string name="developed_by">Developed by: Chong Jin Heng\nDesigned by: Chong Jin Heng\n\nSupervised by: Mr Tong Hau Lee\nModerated by: Mr Tong Gee Kok</string>
+    <string name="developed_for">Developed for Multimedia University \nFinal Year Project \'2015</string>
+    <string-array name="setting_array">
+        <item>Change Display Picture</item>
+        <item>About</item>
+        <item> </item>
+    </string-array>
+
 </resources>

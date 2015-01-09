@@ -48,6 +48,21 @@
         <service android:name=".MonitorLocationService"/>
 
         <activity
+            android:name=".SettingMain"
+            android:screenOrientation="portrait"
+            android:label="@string/settings_main"/>
+
+        <activity
+            android:name=".SettingAccount"
+            android:screenOrientation="portrait"
+            android:label="@string/settings"/>
+
+        <activity
+            android:name=".SettingAbout"
+            android:screenOrientation="portrait"
+            android:label="@string/settings"/>
+
+        <activity
             android:name=".LoginActivity"
             android:screenOrientation="portrait"
             android:label="@string/title_Login"/>

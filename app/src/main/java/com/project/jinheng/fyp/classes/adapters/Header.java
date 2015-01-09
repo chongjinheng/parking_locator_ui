@@ -1,18 +1,23 @@
 package com.project.jinheng.fyp.classes.adapters;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapShader;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.project.jinheng.fyp.R;
+import com.project.jinheng.fyp.SplashScreen;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Transformation;
+
+import java.net.URI;
 
 /**
  * Created by JinHeng on 11/24/2014.
@@ -91,19 +96,23 @@ public class Header implements Item {
                 return "circle";
             }
         };
-
-        if (displayPictureLink != null) {
-            Picasso.with(context).load(displayPictureLink).transform(transformation).fit().into(imageView);
-            textView.setText(name);
-            emailText.setText(email);
-        } else if (resource != 0) {
-            imageView.setBackgroundResource(resource);
-            textView.setText(name);
-            emailText.setText(email);
-
-            return view;
-
+        SharedPreferences settings = context.getSharedPreferences(SplashScreen.PREFS_NAME, 0);
+        String uriString = settings.getString("userImage", null);
+        if (uriString != null) {
+            Uri uri = Uri.parse(uriString);
+            Picasso.with(context).load(uri).transform(transformation).fit().into(imageView);
+        } else {
+            if (displayPictureLink != null) {
+                Picasso.with(context).load(displayPictureLink).transform(transformation).fit().into(imageView);
+                textView.setText(name);
+                emailText.setText(email);
+            } else if (resource != 0) {
+                imageView.setBackgroundResource(resource);
+            }
         }
+        textView.setText(name);
+        emailText.setText(email);
         return view;
     }
 }
+

@@ -7,9 +7,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
 import android.os.Bundle;
-import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -53,7 +51,7 @@ public abstract class BaseActivity extends ActionBarActivity implements android.
         super.onCreate(savedInstanceState);
         setContentView(R.layout.toolbar);
         drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar = (Toolbar) findViewById(R.id.setting_toolbar);
 
         //setting navigation drawer
         actionBarDrawerToggle = new ActionBarDrawerToggle(
@@ -154,11 +152,7 @@ public abstract class BaseActivity extends ActionBarActivity implements android.
 
     @Override
     protected void onResume() {
-        if (drawerLayout.isDrawerOpen(Gravity.START)) {
-            drawerLayout.closeDrawer(Gravity.START);
-        } else {
-            super.onResume();
-        }
+        super.onResume();
     }
 
     public boolean onQueryTextChange(String newText) {
@@ -228,7 +222,7 @@ public abstract class BaseActivity extends ActionBarActivity implements android.
             String facebookUserName = settings.getString("name", null);
             String facebookEmail = settings.getString("email", null);
             if (facebookUID != null || facebookUserName != null || facebookEmail != null) {
-                String profilePictureLink = "https://graph.facebook.com/" + facebookUID + "/picture?height=200&width=200";
+                String profilePictureLink = "https://graph.facebook.com/" + facebookUID + "/picture?height=100&width=100";
                 items.add(new Header(profilePictureLink, facebookUserName, facebookEmail));
             } else {
                 showErrorDialog();
@@ -256,7 +250,9 @@ public abstract class BaseActivity extends ActionBarActivity implements android.
                     case 0:
                         break;
                     case 1:
-                        //go settings
+                        Intent intent = new Intent(BaseActivity.this, SettingMain.class);
+                        startActivity(intent);
+                        overridePendingTransition(R.anim.left_to_right_in, R.anim.fade_out);
                         break;
                     case 2:
                         logoutButtonClicked(getApplicationContext());
