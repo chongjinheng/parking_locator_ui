@@ -329,18 +329,7 @@ public class LoginActivity extends Activity {
                             }
 
                         } catch (MyException e) {
-                            AlertDialog error = new AlertDialog.Builder(LoginActivity.this).create();
-                            error.requestWindowFeature(Window.FEATURE_NO_TITLE);
-                            error.setMessage(e.getMessage());
-                            error.setInverseBackgroundForced(true);
-                            error.setButton(DialogInterface.BUTTON_NEUTRAL, "OK", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-//                              TODO don't know what to do here
-                                }
-                            });
-                            error.show();
-
+                            showErrorDialog(e);
                             if (progressDialog != null) {
                                 progressDialog.dismiss();
                             }
@@ -365,21 +354,11 @@ public class LoginActivity extends Activity {
                 throw new MyException(ErrorStatus.NO_INFO.getName(), ErrorStatus.NO_INFO.getErrorMessage());
             }
         } catch (MyException e) {
-            AlertDialog error = new AlertDialog.Builder(LoginActivity.this).create();
-            error.setTitle(e.getError());
-            error.setMessage(e.getMessage());
-            error.setInverseBackgroundForced(true);
-            error.setButton(DialogInterface.BUTTON_NEUTRAL, "OK", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-//                              TODO don't know what to do here
-                }
-            });
-            error.show();
+            showErrorDialog(e);
         }
     }
 
-    public void saveLoginState() {
+    private void saveLoginState() {
         //let the app remember user have logged in
         SharedPreferences settings = getSharedPreferences(SplashScreen.PREFS_NAME, 0);
         SharedPreferences.Editor editor = settings.edit();
@@ -453,5 +432,19 @@ public class LoginActivity extends Activity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         Session.getActiveSession().onActivityResult(this, requestCode, resultCode, data);
+    }
+
+    private void showErrorDialog(MyException e) {
+        AlertDialog error = new AlertDialog.Builder(LoginActivity.this).create();
+        error.setTitle(e.getError());
+        error.setMessage(e.getMessage());
+        error.setInverseBackgroundForced(true);
+        error.setButton(DialogInterface.BUTTON_NEUTRAL, "OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+            }
+        });
+        error.show();
+
     }
 }

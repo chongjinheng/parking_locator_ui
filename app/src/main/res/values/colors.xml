@@ -29,6 +29,7 @@
     <color name="purple_main">#673AB7</color>
     <color name="orange">#FF9800</color>
     <color name="red_main">#f44336</color>
+    <color name="red_error">#FFCDD2</color>
     <color name="red_light">#ffcdd2</color>
 
 

@@ -47,6 +47,7 @@ public class APIUtils {
     public static final String PARK_VEHICLE = "PARK_VEHICLE";
     public static final String CHECK_VEHICLE = "CHECK_VEHICLE";
     public static final String REMOVE_VEHICLE = "REMOVE_VEHICLE";
+    public static final String REGISTER = "REGISTER";
 
     public static String facebookPrintKeyHash(Activity context) {
         PackageInfo packageInfo;

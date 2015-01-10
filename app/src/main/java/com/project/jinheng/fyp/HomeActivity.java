@@ -173,7 +173,7 @@ public class HomeActivity extends BaseActivity {
                 @Override
                 public void onClick(View v) {
                     if (!locationManager.isProviderEnabled((LocationManager.NETWORK_PROVIDER))) {
-                        showErrorDialog();
+                        locationErrorDialog();
                     } else if (location != null) {
                         map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 15.0f));
 
@@ -238,6 +238,9 @@ public class HomeActivity extends BaseActivity {
                                 } else {
                                     Toast.makeText(getActivity(), "You have not parked your vehicle yet!", Toast.LENGTH_SHORT).show();
                                 }
+                            } else {
+                                MyException e = new MyException(ErrorStatus.ACCESS_DENIED.getName(), ErrorStatus.ACCESS_DENIED.getErrorMessage());
+                                showErrorDialog(e);
                             }
                             if (progressDialog != null) {
                                 progressDialog.dismiss();
@@ -253,7 +256,7 @@ public class HomeActivity extends BaseActivity {
                         dataToProcess.setServiceName(APIUtils.CHECK_VEHICLE);
                         dataToProcess.setEmail(userEmail);
                     } else {
-                        showErrorDialog();
+                        locationErrorDialog();
                     }
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
                         asyncRunning = true;
@@ -404,18 +407,7 @@ public class HomeActivity extends BaseActivity {
                                                                              }
 
                                                                          } catch (MyException e) {
-                                                                             AlertDialog error = new AlertDialog.Builder(getActivity()).create();
-                                                                             error.requestWindowFeature(Window.FEATURE_NO_TITLE);
-                                                                             error.setMessage(e.getMessage());
-                                                                             error.setInverseBackgroundForced(true);
-                                                                             error.setButton(DialogInterface.BUTTON_NEUTRAL, "Something went wrong, please try again later", new DialogInterface.OnClickListener() {
-                                                                                 @Override
-                                                                                 public void onClick(DialogInterface dialog, int which) {
-                                                                                     getActivity().finish();
-                                                                                 }
-                                                                             });
-                                                                             error.show();
-
+                                                                             showErrorDialog(e);
                                                                              if (progressDialog != null) {
                                                                                  progressDialog.dismiss();
                                                                              }
@@ -473,14 +465,13 @@ public class HomeActivity extends BaseActivity {
                                                                              }
 
                                                                          } catch (MyException e) {
-                                                                             AlertDialog error = new AlertDialog.Builder(getActivity()).create();
-                                                                             error.requestWindowFeature(Window.FEATURE_NO_TITLE);
-                                                                             error.setMessage(e.getMessage());
-                                                                             error.setInverseBackgroundForced(true);
-                                                                             error.setButton(DialogInterface.BUTTON_POSITIVE, "Yes", new DialogInterface.OnClickListener() {
+                                                                             AlertDialog reParkDialog = new AlertDialog.Builder(getActivity()).create();
+                                                                             reParkDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+                                                                             reParkDialog.setMessage(e.getMessage());
+                                                                             reParkDialog.setInverseBackgroundForced(true);
+                                                                             reParkDialog.setButton(DialogInterface.BUTTON_POSITIVE, "Yes", new DialogInterface.OnClickListener() {
                                                                                  @Override
                                                                                  public void onClick(DialogInterface dialog, int which) {
-                                                                                     //TODO remove from slot table using another async
                                                                                      JSONDTO dataToProcess = new JSONDTO();
                                                                                      dataToProcess.setServiceName(APIUtils.PARK_VEHICLE);
                                                                                      SharedPreferences settings = getActivity().getSharedPreferences(SplashScreen.PREFS_NAME, 0);
@@ -510,14 +501,14 @@ public class HomeActivity extends BaseActivity {
                                                                                      parkHereText.setVisibility(View.INVISIBLE);
                                                                                  }
                                                                              });
-                                                                             error.setButton(DialogInterface.BUTTON_NEGATIVE, "No", new DialogInterface.OnClickListener() {
+                                                                             reParkDialog.setButton(DialogInterface.BUTTON_NEGATIVE, "No", new DialogInterface.OnClickListener() {
                                                                                  @Override
                                                                                  public void onClick(DialogInterface dialog, int which) {
                                                                                      parkHereButton.setVisibility(View.INVISIBLE);
                                                                                      parkHereText.setVisibility(View.INVISIBLE);
                                                                                  }
                                                                              });
-                                                                             error.show();
+                                                                             reParkDialog.show();
 
                                                                              if (progressDialog != null) {
                                                                                  progressDialog.dismiss();
@@ -612,7 +603,7 @@ public class HomeActivity extends BaseActivity {
 
         @Override
         public void onProviderDisabled(String arg0) {
-            showErrorDialog();
+            locationErrorDialog();
             if (!markerLoaded) {
                 if (location != null) {
                     map.clear();
@@ -621,30 +612,6 @@ public class HomeActivity extends BaseActivity {
                     map.clear();
                     initializeMarkers(2.923218, 2.923218);
                 }
-            }
-        }
-
-        private void showErrorDialog() {
-            Log.i("called", "showErrorDialog");
-            //initialize error dialog
-            if (errorDialog == null) {
-                errorDialog = new AlertDialog.Builder(getActivity()).create();
-                errorDialog.setTitle("Location Service disabled");
-                errorDialog.setMessage("Please enable location service to get more accurate information.");
-                errorDialog.setInverseBackgroundForced(true);
-                errorDialog.setButton(DialogInterface.BUTTON_POSITIVE, "Location Settings", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                        startActivity(intent);
-                    }
-                });
-            }
-
-            if (!errorDialog.isShowing()) {
-                errorDialog.show();
-            } else {
-                errorDialog.dismiss();
             }
         }
 
@@ -888,17 +855,7 @@ public class HomeActivity extends BaseActivity {
                             }
                         }
                     } catch (MyException e) {
-                        AlertDialog error = new AlertDialog.Builder(getActivity()).create();
-                        error.requestWindowFeature(Window.FEATURE_NO_TITLE);
-                        error.setMessage(e.getMessage());
-                        error.setInverseBackgroundForced(true);
-                        error.setButton(DialogInterface.BUTTON_NEUTRAL, "OK", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-//                              TODO don't know what to do here
-                            }
-                        });
-                        error.show();
+                        showErrorDialog(e);
                     }
                 }
             };
@@ -929,12 +886,11 @@ public class HomeActivity extends BaseActivity {
                 e.printStackTrace();
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                asyncRunning = true;
                 markerAPICall.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, dataToProcess);
             } else {
-                asyncRunning = true;
                 markerAPICall.execute(dataToProcess);
             }
+
         }
 
         @Override
@@ -974,6 +930,43 @@ public class HomeActivity extends BaseActivity {
             parkHereText.setVisibility(View.INVISIBLE);
             parkHereButton.setVisibility(View.INVISIBLE);
             displayOrDisableToast(1);
+        }
+
+        private void showErrorDialog(MyException e) {
+            AlertDialog error = new AlertDialog.Builder(getActivity()).create();
+            error.requestWindowFeature(Window.FEATURE_NO_TITLE);
+            error.setMessage(e.getMessage());
+            error.setInverseBackgroundForced(true);
+            error.setButton(DialogInterface.BUTTON_NEUTRAL, "OK", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                }
+            });
+            error.show();
+        }
+
+        private void locationErrorDialog() {
+            Log.i("called", "locationErrorDialog");
+            //initialize error dialog
+            if (errorDialog == null) {
+                errorDialog = new AlertDialog.Builder(getActivity()).create();
+                errorDialog.setTitle("Location Service disabled");
+                errorDialog.setMessage("Please enable location service to get more accurate information.");
+                errorDialog.setInverseBackgroundForced(true);
+                errorDialog.setButton(DialogInterface.BUTTON_POSITIVE, "Location Settings", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                        startActivity(intent);
+                    }
+                });
+            }
+
+            if (!errorDialog.isShowing()) {
+                errorDialog.show();
+            } else {
+                errorDialog.dismiss();
+            }
         }
 
         private TextView getParkHereText(View view) {

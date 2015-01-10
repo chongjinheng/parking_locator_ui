@@ -60,4 +60,10 @@
         <item> </item>
     </string-array>
 
+    <!--Register errors-->
+    <string name="email_format_error">Please enter a valid email address.</string>
+    <string name="password_length_error">Password should be 8 to 15 characters.</string>
+    <string name="password_format_error">Password format is invalid.</string>
+    <string name="password_repeat_error">Password does not match.</string>
+
 </resources>
