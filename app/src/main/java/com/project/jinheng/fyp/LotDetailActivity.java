@@ -43,6 +43,7 @@ public class LotDetailActivity extends BaseActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        BaseActivity.needSearch = false;
         super.onCreate(savedInstanceState);
 
         String json = getIntent().getStringExtra("details");

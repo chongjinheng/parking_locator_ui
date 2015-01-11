@@ -1,11 +1,18 @@
 package com.project.jinheng.fyp;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.Window;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -15,6 +22,11 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.dd.processbutton.iml.ActionProcessButton;
+import com.project.jinheng.fyp.classes.APIUtils;
+import com.project.jinheng.fyp.classes.ErrorStatus;
+import com.project.jinheng.fyp.classes.JSONDTO;
+import com.project.jinheng.fyp.classes.JSONError;
+import com.project.jinheng.fyp.classes.MyException;
 
 /**
  * Created by JinHeng on 12/2/2014.
@@ -26,6 +38,8 @@ public class ForgotPasswordActivity extends Activity {
     private EditText fpasswordEmail;
     private ActionProcessButton resetPasswordButton;
     private Button resetPasswordButtonFake;
+    private ProgressDialog progressDialog;
+    private static String TAG = "ForgotPasswordActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,6 +114,91 @@ public class ForgotPasswordActivity extends Activity {
 
     public void forgotPasswordButtonClicked(View view) {
 
+        AsyncTask<JSONDTO, Void, JSONDTO> forgotPasswordAPICall = new AsyncTask<JSONDTO, Void, JSONDTO>() {
+            @Override
+            protected void onPreExecute() {
+                progressDialog = MyProgressDialog.initiate(ForgotPasswordActivity.this);
+                progressDialog.show();
+            }
+
+            @Override
+            protected JSONDTO doInBackground(JSONDTO... params) {
+                JSONDTO jsonFromServer;
+                try {
+                    jsonFromServer = APIUtils.processAPICalls(params[0]);
+                    return jsonFromServer;
+
+                } catch (MyException e) {
+                    Log.e(TAG, e.getMessage());
+                    JSONDTO returnDTO = new JSONDTO();
+                    JSONError error = new JSONError(e.getError(), e.getMessage());
+                    returnDTO.setError(error);
+                    return returnDTO;
+                } catch (Exception e) {
+                    JSONDTO returnDTO = new JSONDTO();
+                    e.printStackTrace();
+                    Log.e(TAG, "Exception occurred when calling API");
+                    JSONError error = new JSONError(ErrorStatus.ACCESS_DENIED.getName(), ErrorStatus.ACCESS_DENIED.getErrorMessage());
+                    returnDTO.setError(error);
+                    return returnDTO;
+                }
+            }
+
+            @Override
+            protected void onPostExecute(JSONDTO jsondto) {
+                try {
+                    if (jsondto != null) {
+                        if (jsondto.getError() != null) {
+                            throw new MyException(jsondto.getError().getCode(), jsondto.getError().getMessage());
+                        } else {
+                            AlertDialog fpSuccess = new AlertDialog.Builder(ForgotPasswordActivity.this).create();
+                            fpSuccess.setCancelable(false);
+                            fpSuccess.setTitle("Password reset");
+                            fpSuccess.setMessage("Password reset Successfully!\nYou will receive an email soon.");
+                            fpSuccess.setCancelable(false);
+                            fpSuccess.setButton(DialogInterface.BUTTON_NEUTRAL, "OK", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    Intent intent = new Intent(ForgotPasswordActivity.this, LoginActivity.class);
+                                    startActivity(intent);
+                                    overridePendingTransition(R.anim.fade_in, R.anim.top_to_bottom_in);
+                                }
+                            });
+
+                        }
+                    }
+                    if (progressDialog != null) {
+                        progressDialog.dismiss();
+                    }
+                } catch (MyException e) {
+                    showErrorDialog(e);
+                }
+            }
+        };
+
+        JSONDTO dataToProcess = new JSONDTO();
+        dataToProcess.setServiceName(APIUtils.FORGOT_PASSWORD);
+        dataToProcess.setEmail(fpasswordEmail.getText().toString());
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            forgotPasswordAPICall.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, dataToProcess);
+        } else {
+            forgotPasswordAPICall.execute(dataToProcess);
+        }
     }
 
+    private void showErrorDialog(MyException e) {
+        AlertDialog error = new AlertDialog.Builder(this).create();
+        error.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        error.setMessage(e.getMessage());
+        error.setInverseBackgroundForced(true);
+        error.setButton(DialogInterface.BUTTON_NEUTRAL, "OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+            }
+        });
+        error.show();
+        if (progressDialog != null) {
+            progressDialog.dismiss();
+        }
+    }
 }

@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
+import android.app.SearchManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -28,8 +29,11 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.view.WindowManager;
 import android.view.animation.BounceInterpolator;
 import android.view.animation.Interpolator;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -45,11 +49,22 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.melnykov.fab.FloatingActionButton;
 import com.project.jinheng.fyp.classes.APIUtils;
 import com.project.jinheng.fyp.classes.ErrorStatus;
+import com.project.jinheng.fyp.classes.GoogleNearbyPlaces;
 import com.project.jinheng.fyp.classes.JSONDTO;
 import com.project.jinheng.fyp.classes.JSONError;
 import com.project.jinheng.fyp.classes.Lot;
 import com.project.jinheng.fyp.classes.MyException;
+import com.project.jinheng.fyp.classes.SearchClasses;
 import com.project.jinheng.fyp.classes.Slot;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.conn.HttpHostConnectException;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
+import org.w3c.dom.Text;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
@@ -70,12 +85,17 @@ public class HomeActivity extends BaseActivity {
     private static Marker justToPassAMarker;
     private static TextView justToPassAText;
     private static FloatingActionButton justToPassAButton;
+    private static Location justToPassALocation;
     public static boolean mapIsTouched;
+    private static ProgressDialog progressDialog;
+    private static GoogleMap justToPassAMap;
+
+    private List<Marker> markers = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        BaseActivity.needSearch = true;
         super.onCreate(savedInstanceState);
-
         Fragment fragment = HomeFragment.newInstance(R.layout.fragment_home);
         FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();
         fragmentTransaction.replace(R.id.container, fragment);
@@ -84,12 +104,139 @@ public class HomeActivity extends BaseActivity {
     }
 
     @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        if (progressDialog != null) {
+            progressDialog.dismiss();
+        }
+        if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
+            String query = intent.getStringExtra(SearchManager.QUERY);
+
+            AsyncTask<String, Void, GoogleNearbyPlaces> placesAPICall = new AsyncTask<String, Void, GoogleNearbyPlaces>() {
+                @Override
+                protected void onPreExecute() {
+                    progressDialog = MyProgressDialog.initiate(HomeActivity.this);
+                    progressDialog.show();
+                }
+
+                @Override
+                protected GoogleNearbyPlaces doInBackground(String... params) {
+                    try {
+                        String lat = String.valueOf(justToPassALocation.getLatitude());
+                        String lng = String.valueOf(justToPassALocation.getLongitude());
+                        String query = params[0].trim();
+                        query = query.replace(" ", "+");
+                        HttpGet httpGet = new HttpGet(APIUtils.PLACES_API_BASE + APIUtils.PLACES_API_TYPE_NEARBYSEARCH + "?location=" + lat + "," + lng + "&rankby=distance&name=" + query + APIUtils.PLACES_API_KEY);
+                        HttpClient client = new DefaultHttpClient();
+
+                        Log.d(TAG, "getting data from places API......");
+                        HttpResponse response;
+
+                        response = client.execute(httpGet);
+                        HttpEntity entity = response.getEntity();
+                        String data = EntityUtils.toString(entity);
+                        Log.d(TAG + "\nJSON sent from Google: ", data);
+                        GoogleNearbyPlaces returnedJSON = APIUtils.create().fromJson(data, GoogleNearbyPlaces.class);
+                        //result is returned
+                        if (returnedJSON.getStatus().equals("OK")) {
+                            return returnedJSON;
+                        } else if (returnedJSON.getStatus().equals("ZERO_RESULTS")) {
+                            //no result is returned
+                            return null;
+                        } else {
+                            //other codes
+                            throw new MyException(ErrorStatus.ACCESS_DENIED.getName(), ErrorStatus.ACCESS_DENIED.getErrorMessage());
+
+                        }
+                    } catch (MyException e) {
+                        Log.e(TAG, "Unexpected error");
+                        e.printStackTrace();
+                    } catch (HttpHostConnectException e) {
+                        Log.e(TAG, "Server timed out");
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    return null;
+                }
+
+                @Override
+                protected void onPostExecute(GoogleNearbyPlaces places) {
+                    if (places != null) {
+                        List<SearchClasses.Result> results = places.getResults();
+
+                        //clear map first
+                        for (Marker m : markers) {
+                            m.remove();
+                        }
+                        markers = new ArrayList<>();
+
+                        for (SearchClasses.Result r : results) {
+                            Double lat = r.getGeometry().getLocation().getLat();
+                            Double lng = r.getGeometry().getLocation().getLng();
+                            Marker marker = justToPassAMap.addMarker(new MarkerOptions()
+                                            .position(new LatLng(lat, lng))
+                                            .title(r.getName())
+                                            .snippet(r.getVicinity())
+                            );
+
+                            markers.add(marker);
+                        }
+                        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
+
+                        LatLng position = markers.get(0).getPosition();
+                        justToPassAMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(position.latitude, position.longitude), 16.5f));
+                        markers.get(0).showInfoWindow();
+                    } else {
+                        Toast.makeText(HomeActivity.this, "No matching result found from the search", Toast.LENGTH_SHORT).show();
+                    }
+                    if (progressDialog != null) {
+                        progressDialog.dismiss();
+                    }
+                }
+            };
+
+            if (justToPassALocation != null) {
+                if (query.length() >= 3) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                        placesAPICall.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, query);
+                    } else {
+                        placesAPICall.execute(query);
+                    }
+                } else {
+                    Toast.makeText(HomeActivity.this, "Please search for more than 3 words.", Toast.LENGTH_SHORT).show();
+                }
+
+            } else {
+                Toast.makeText(HomeActivity.this, "Unable to obtain GPS Location", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    public void showErrorDialog(MyException e) {
+        AlertDialog error = new AlertDialog.Builder(HomeActivity.this).create();
+        error.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        error.setMessage(e.getMessage());
+        error.setInverseBackgroundForced(true);
+        error.setButton(DialogInterface.BUTTON_NEUTRAL, "OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+            }
+        });
+        error.show();
+    }
+
+    @Override
     public void onBackPressed() {
 
         if (BaseActivity.drawerOpen) {
             super.onBackPressed();
+        } else if (markers.size() > 0) {
+            for (Marker m : markers) {
+                m.remove();
+            }
         } else {
-            Toast exitConfirmationToast = Toast.makeText(this, "Press back again to exit the application.", Toast.LENGTH_SHORT);
+            Toast exitConfirmationToast = Toast.makeText(HomeActivity.this, "Press back again to exit the application.", Toast.LENGTH_SHORT);
 
             final int interval = 2000;
             // if info window is opened, close it instead of trying to exit
@@ -118,7 +265,6 @@ public class HomeActivity extends BaseActivity {
     public static class HomeFragment extends Fragment implements LocationListener {
 
         private static final String TAG = "HomeFragment";
-        private GoogleMap map;
         private Location location;
         private LocationManager locationManager;
         private String locationProvider;
@@ -129,7 +275,8 @@ public class HomeActivity extends BaseActivity {
         private Marker currentMarker; //to close that marker when other thing clicked
         private Toast connectingToastFragment;
         private final Handler connectingToastHandler = new Handler();
-        private ProgressDialog progressDialog;
+        private GoogleMap map;
+        private List<Marker> parkingMarkers = new ArrayList<>();
         private final Runnable runnable = new Runnable() {
 
             @Override
@@ -160,6 +307,7 @@ public class HomeActivity extends BaseActivity {
 
             if (map == null) {
                 map = ((MyMapFragment) getFragmentManager().findFragmentById(R.id.map)).getMap();
+                justToPassAMap = map;
                 if (map == null) {
                     Log.e(TAG, "Map not loaded");
                 }
@@ -181,7 +329,7 @@ public class HomeActivity extends BaseActivity {
                             currentMarker.hideInfoWindow();
                         } else {
                             if (!asyncRunning) {
-                                map.clear();
+                                clearParkingMarkers();
                                 markerLoaded = false;
                                 Log.d(TAG, "reloaded markers");
                                 initializeMarkers(location.getLatitude(), location.getLongitude());
@@ -357,6 +505,7 @@ public class HomeActivity extends BaseActivity {
                                                  justToPassAText = parkHereText;
 
                                                  if (location != null) {
+
                                                      //ask user wanna park or not if current marker is near user
                                                      if (APIUtils.calculateDistance(location.getLatitude(), location.getLongitude(), marker.getPosition().latitude, marker.getPosition().longitude, "M") <= 0.2) {
                                                          parkHereText.setVisibility(View.VISIBLE);
@@ -564,6 +713,7 @@ public class HomeActivity extends BaseActivity {
 
             );
 
+            map.clear();
             Log.d(TAG, "map initialized");
         }
 
@@ -588,13 +738,14 @@ public class HomeActivity extends BaseActivity {
             if (!asyncRunning) {
 
                 location = newLocation;
+                justToPassALocation = location;
                 if (markerLoaded && currentMarker == null) {
-                    map.clear();
+                    clearParkingMarkers();
                     markerLoaded = false;
                     initializeMarkers(newLocation.getLatitude(), newLocation.getLongitude());
                 }
                 if (!markerLoaded) {
-                    map.clear();
+                    clearParkingMarkers();
                     initializeMarkers(newLocation.getLatitude(), newLocation.getLongitude());
                 }
 
@@ -606,10 +757,10 @@ public class HomeActivity extends BaseActivity {
             locationErrorDialog();
             if (!markerLoaded) {
                 if (location != null) {
-                    map.clear();
+                    clearParkingMarkers();
                     initializeMarkers(location.getLatitude(), location.getLongitude());
                 } else {
-                    map.clear();
+                    clearParkingMarkers();
                     initializeMarkers(2.923218, 2.923218);
                 }
             }
@@ -684,7 +835,7 @@ public class HomeActivity extends BaseActivity {
                                             Toast.makeText(getActivity(), "System is currently unavailable. Functionality will be limited.", Toast.LENGTH_LONG).show();
                                         } else {
                                             if (!markerLoaded) {
-                                                map.clear();
+                                                clearParkingMarkers();
                                                 initializeMarkers(latitude, longitude);
                                             }
                                         }
@@ -710,82 +861,97 @@ public class HomeActivity extends BaseActivity {
                                                                  TextView details = (TextView) v.findViewById(R.id.info_window_details);
                                                                  ImageView availability = (ImageView) v.findViewById(R.id.info_window_availability);
                                                                  TextView price = (TextView) v.findViewById(R.id.info_window_price);
+                                                                 TextView instruction = (TextView) v.findViewById(R.id.info_window_instruction);
 
-                                                                 if (parkingLots != null) {
-                                                                     Integer parkingLotIndex = Integer.valueOf(marker.getSnippet());
-                                                                     Lot lot = parkingLots.get(parkingLotIndex);
-                                                                     title.setText(lot.getLotName());
-                                                                     address.setText(lot.getAddress() + " " + lot.getCity() + ", " + lot.getState());
+                                                                 if (marker.getSnippet().length() > 2) {
+                                                                     title.setText(marker.getTitle());
+                                                                     address.setText(marker.getSnippet());
+                                                                     details.setVisibility(View.INVISIBLE);
+                                                                     availability.setVisibility(View.INVISIBLE);
+                                                                     price.setVisibility(View.INVISIBLE);
+                                                                     instruction.setVisibility(View.INVISIBLE);
 
-                                                                     //set price
-                                                                     DecimalFormat formatter = new DecimalFormat("RM ###.00");
-                                                                     if (lot.getPrice() != null) {
-                                                                         String type = lot.getPrice().getPriceType();
-                                                                         if (type.equals("FLAT")) {
-                                                                             Double value = Double.valueOf(lot.getPrice().getFlatRate()) / 100;
-                                                                             String output = formatter.format(value);
-                                                                             price.setText(output + " per hour");
-                                                                         } else if (type.equals("DYNAMIC") || type.equals("RATE")) {
-                                                                             Double value = Double.valueOf(lot.getPrice().getFirstHour()) / 100;
-                                                                             String output = formatter.format(value);
-                                                                             price.setText("First Hour: " + output);
+                                                                 } else {
+                                                                     details.setVisibility(View.VISIBLE);
+                                                                     availability.setVisibility(View.VISIBLE);
+                                                                     price.setVisibility(View.VISIBLE);
+                                                                     instruction.setVisibility(View.VISIBLE);
+
+                                                                     if (parkingLots != null) {
+                                                                         Integer parkingLotIndex = Integer.valueOf(marker.getSnippet());
+                                                                         Lot lot = parkingLots.get(parkingLotIndex);
+                                                                         title.setText(lot.getLotName());
+                                                                         address.setText(lot.getAddress() + " " + lot.getCity() + ", " + lot.getState());
+
+                                                                         //set price
+                                                                         DecimalFormat formatter = new DecimalFormat("RM ###.00");
+                                                                         if (lot.getPrice() != null) {
+                                                                             String type = lot.getPrice().getPriceType();
+                                                                             if (type.equals("FLAT")) {
+                                                                                 Double value = Double.valueOf(lot.getPrice().getFlatRate()) / 100;
+                                                                                 String output = formatter.format(value);
+                                                                                 price.setText(output + " per hour");
+                                                                             } else if (type.equals("DYNAMIC") || type.equals("RATE")) {
+                                                                                 Double value = Double.valueOf(lot.getPrice().getFirstHour()) / 100;
+                                                                                 String output = formatter.format(value);
+                                                                                 price.setText("First Hour: " + output);
+                                                                             }
+                                                                         } else {
+                                                                             price.setText("");
                                                                          }
-                                                                     } else {
-                                                                         price.setText("");
-                                                                     }
 
-                                                                     //display lot type accordingly
-                                                                     if (lot.getLotType().equals("B")) {
-                                                                         details.setText("Basement Parking");
-                                                                     } else if (lot.getLotType().equals("O")) {
-                                                                         details.setText("Open Parking");
-                                                                     } else if (lot.getLotType().equals("P")) {
-                                                                         details.setText("Paid Parking");
-                                                                     } else {
-                                                                         details.setText("");
-                                                                     }
+                                                                         //display lot type accordingly
+                                                                         if (lot.getLotType().equals("B")) {
+                                                                             details.setText("Basement Parking");
+                                                                         } else if (lot.getLotType().equals("O")) {
+                                                                             details.setText("Open Parking");
+                                                                         } else if (lot.getLotType().equals("P")) {
+                                                                             details.setText("Paid Parking");
+                                                                         } else {
+                                                                             details.setText("");
+                                                                         }
 
-                                                                     //set image according to opening hour
-                                                                     int openingHour;
-                                                                     int closeHour;
-                                                                     int hourNow;
-                                                                     boolean open = false; //to indicate parking open or close
-                                                                     boolean unknown = false; //for unknow operating time
+                                                                         //set image according to opening hour
+                                                                         int openingHour;
+                                                                         int closeHour;
+                                                                         int hourNow;
+                                                                         boolean open = false; //to indicate parking open or close
+                                                                         boolean unknown = false; //for unknow operating time
 
-                                                                     if (lot.getOpenHour() != 0 || lot.getCloseHour() != 0) {
-                                                                         openingHour = lot.getOpenHour();
-                                                                         closeHour = lot.getCloseHour();
+                                                                         if (lot.getOpenHour() != 0 || lot.getCloseHour() != 0) {
+                                                                             openingHour = lot.getOpenHour();
+                                                                             closeHour = lot.getCloseHour();
 
-                                                                         Calendar timeNow = Calendar.getInstance();
-                                                                         hourNow = timeNow.get(Calendar.HOUR_OF_DAY);
+                                                                             Calendar timeNow = Calendar.getInstance();
+                                                                             hourNow = timeNow.get(Calendar.HOUR_OF_DAY);
 
-                                                                         //logic to check whether parking is open now
-                                                                         //convert to 12 hour format
+                                                                             //logic to check whether parking is open now
+                                                                             //convert to 12 hour format
 
-                                                                         if (closeHour - openingHour >= 0) {
-                                                                             if (hourNow <= closeHour && hourNow > openingHour) {
-                                                                                 open = true;
-                                                                             }
-                                                                         } else if (closeHour - openingHour < 0) {
-                                                                             if (hourNow > closeHour && hourNow <= openingHour) {
-                                                                                 open = true;
-                                                                             }
-                                                                         } else
-                                                                             open = false;
+                                                                             if (closeHour - openingHour >= 0) {
+                                                                                 if (hourNow <= closeHour && hourNow > openingHour) {
+                                                                                     open = true;
+                                                                                 }
+                                                                             } else if (closeHour - openingHour < 0) {
+                                                                                 if (hourNow > closeHour && hourNow <= openingHour) {
+                                                                                     open = true;
+                                                                                 }
+                                                                             } else
+                                                                                 open = false;
 
-                                                                     } else {
-                                                                         unknown = true;
-                                                                     }
+                                                                         } else {
+                                                                             unknown = true;
+                                                                         }
 
-                                                                     if (unknown) { //if unknown set to grey
-                                                                         availability.setBackgroundResource(R.drawable.ic_light_blue);
-                                                                     } else if (open) {
-                                                                         availability.setBackgroundResource(R.drawable.ic_light_green);
-                                                                     } else if (!open) {
-                                                                         availability.setBackgroundResource(R.drawable.ic_light_red);
+                                                                         if (unknown) { //if unknown set to grey
+                                                                             availability.setBackgroundResource(R.drawable.ic_light_blue);
+                                                                         } else if (open) {
+                                                                             availability.setBackgroundResource(R.drawable.ic_light_green);
+                                                                         } else if (!open) {
+                                                                             availability.setBackgroundResource(R.drawable.ic_light_red);
+                                                                         }
                                                                      }
                                                                  }
-
                                                                  return v;
                                                              }
 
@@ -804,12 +970,14 @@ public class HomeActivity extends BaseActivity {
 
                                                                          //prepare lot object to sent to activity
                                                                          if (parkingLots != null) {
-                                                                             Integer parkingLotIndex = Integer.valueOf(marker.getSnippet());
-                                                                             Lot lot = parkingLots.get(parkingLotIndex);
-                                                                             String json = APIUtils.toJson(lot);
-                                                                             intent.putExtra("details", json);
-                                                                             startActivity(intent);
-                                                                             getActivity().overridePendingTransition(R.anim.bottom_to_top_in, R.anim.fade_out);
+                                                                             if (marker.getSnippet().length() <= 2) {
+                                                                                 Integer parkingLotIndex = Integer.valueOf(marker.getSnippet());
+                                                                                 Lot lot = parkingLots.get(parkingLotIndex);
+                                                                                 String json = APIUtils.toJson(lot);
+                                                                                 intent.putExtra("details", json);
+                                                                                 startActivity(intent);
+                                                                                 getActivity().overridePendingTransition(R.anim.bottom_to_top_in, R.anim.fade_out);
+                                                                             }
                                                                          }
                                                                      }
                                                                  }
@@ -820,30 +988,34 @@ public class HomeActivity extends BaseActivity {
                                 for (Lot lot : parkingLots) {
                                     if (lot.getLongitude() != null && lot.getLatitude() != null && lot.getLotName() != null && lot.getAddress() != null) {
                                         if (lot.getAvailability().equals("U")) {
-                                            map.addMarker(new MarkerOptions()
+                                            Marker marker = map.addMarker(new MarkerOptions()
                                                     .position(new LatLng(lot.getLatitude(), lot.getLongitude()))
                                                     .title(lot.getLotName())
                                                     .snippet(parkingLotListIndex.toString())
                                                     .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_marker_grey)));
                                             parkingLotListIndex++;
+                                            parkingMarkers.add(marker);
                                         } else if (lot.getAvailability().equals("H")) {
-                                            map.addMarker(new MarkerOptions()
+                                            Marker marker = map.addMarker(new MarkerOptions()
                                                     .position(new LatLng(lot.getLatitude(), lot.getLongitude())).title(lot.getLotName())
                                                     .snippet(parkingLotListIndex.toString())
                                                     .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_marker_green)));
                                             parkingLotListIndex++;
+                                            parkingMarkers.add(marker);
                                         } else if (lot.getAvailability().equals("M")) {
-                                            map.addMarker(new MarkerOptions()
+                                            Marker marker = map.addMarker(new MarkerOptions()
                                                     .position(new LatLng(lot.getLatitude(), lot.getLongitude())).title(lot.getLotName())
                                                     .snippet(parkingLotListIndex.toString())
                                                     .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_marker_orange)));
                                             parkingLotListIndex++;
+                                            parkingMarkers.add(marker);
                                         } else if (lot.getAvailability().equals("L")) {
-                                            map.addMarker(new MarkerOptions()
+                                            Marker marker = map.addMarker(new MarkerOptions()
                                                     .position(new LatLng(lot.getLatitude(), lot.getLongitude())).title(lot.getLotName())
                                                     .snippet(parkingLotListIndex.toString())
                                                     .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_marker_red)));
                                             parkingLotListIndex++;
+                                            parkingMarkers.add(marker);
                                         } else {
                                             throw new MyException(ErrorStatus.ACCESS_DENIED.getName(), ErrorStatus.ACCESS_DENIED.getErrorMessage());
                                         }
@@ -919,17 +1091,31 @@ public class HomeActivity extends BaseActivity {
 
         @Override
         public void onStop() {
+            if (progressDialog != null) {
+                progressDialog.dismiss();
+            }
             super.onStop();
         }
 
         @Override
         public void onPause() {
+            if (progressDialog != null) {
+                progressDialog.dismiss();
+            }
             super.onPause();
             Log.i("called", "Map --> onPause");
             locationManager.removeUpdates(this);
             parkHereText.setVisibility(View.INVISIBLE);
             parkHereButton.setVisibility(View.INVISIBLE);
             displayOrDisableToast(1);
+        }
+
+        private void clearParkingMarkers() {
+            if (parkingMarkers != null) {
+                for (Marker m : parkingMarkers) {
+                    m.remove();
+                }
+            }
         }
 
         private void showErrorDialog(MyException e) {

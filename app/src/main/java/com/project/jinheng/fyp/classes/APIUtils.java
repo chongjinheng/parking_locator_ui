@@ -39,6 +39,9 @@ public class APIUtils {
 
     private static String TAG = "API";
     public static final String APIURL = "http://192.168.1.5:8080/";
+    public static final String PLACES_API_BASE = "https://maps.googleapis.com/maps/api/place";
+    public static final String PLACES_API_TYPE_NEARBYSEARCH = "/nearbysearch/json";
+    public static final String PLACES_API_KEY = "&key=AIzaSyByNl5n2fXo3Q-_pYbI_gnJU1EjzBW3jxc";
 
     //Service names
     public static final String LOGIN = "LOGIN";
@@ -48,6 +51,8 @@ public class APIUtils {
     public static final String CHECK_VEHICLE = "CHECK_VEHICLE";
     public static final String REMOVE_VEHICLE = "REMOVE_VEHICLE";
     public static final String REGISTER = "REGISTER";
+    public static final String FORGOT_PASSWORD = "FORGOT_PASSWORD";
+    public static final String CHANGE_PASSWORD = "CHANGE_PASSWORD";
 
     public static String facebookPrintKeyHash(Activity context) {
         PackageInfo packageInfo;

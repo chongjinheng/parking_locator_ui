@@ -260,6 +260,7 @@ public class RegisterActivity extends Activity {
                     Intent intent = new Intent(RegisterActivity.this, HomeActivity.class);
                     startActivity(intent);
                     overridePendingTransition(R.anim.fade_in, R.anim.top_to_bottom_in);
+                    finish();
                 }
             });
         } else {

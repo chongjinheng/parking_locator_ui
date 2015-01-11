@@ -14,13 +14,18 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.facebook.Session;
+import com.project.jinheng.fyp.classes.APIUtils;
 import com.project.jinheng.fyp.classes.adapters.DrawerListAdapter;
 import com.project.jinheng.fyp.classes.adapters.Header;
 import com.project.jinheng.fyp.classes.adapters.Item;
@@ -36,6 +41,7 @@ public abstract class BaseActivity extends ActionBarActivity implements android.
 
     //declared global as need to use in multiple methods
     public static boolean drawerOpen = false;
+    public static boolean needSearch = false;
 
     private Toolbar toolbar;
     private DrawerLayout drawerLayout;
@@ -81,6 +87,10 @@ public abstract class BaseActivity extends ActionBarActivity implements android.
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
         actionBarDrawerToggle.syncState();
+
+        if (drawerLayout.isDrawerOpen(Gravity.START)) {
+            drawerLayout.closeDrawer(Gravity.START);
+        }
         initializeDrawerItem();
     }
 
@@ -96,12 +106,12 @@ public abstract class BaseActivity extends ActionBarActivity implements android.
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
         this.menu = menu;
-
-        getMenuInflater().inflate(R.menu.my, menu);
-
-        searchItem = menu.findItem(R.id.search);
-        searchView = (android.support.v7.widget.SearchView) searchItem.getActionView();
-        setupSearchView(searchItem);
+        if (needSearch) {
+            getMenuInflater().inflate(R.menu.my, menu);
+            searchItem = menu.findItem(R.id.search);
+            searchView = (android.support.v7.widget.SearchView) searchItem.getActionView();
+            setupSearchView(searchItem);
+        }
         return true;
     }
 
@@ -115,18 +125,9 @@ public abstract class BaseActivity extends ActionBarActivity implements android.
 
         SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
         if (searchManager != null) {
-//            List<SearchableInfo> searchables = searchManager.getSearchablesInGlobalSearch();
-
             SearchableInfo info = searchManager.getSearchableInfo(getComponentName());
-//            for (SearchableInfo inf : searchables) {
-//                if (inf.getSuggestAuthority() != null
-//                        && inf.getSuggestAuthority().startsWith("applications")) {
-//                    info = inf;
-//                }
-//            }
             searchView.setSearchableInfo(info);
         }
-
         searchView.setOnQueryTextListener(this);
 
         //close search view when back pressed
@@ -160,6 +161,7 @@ public abstract class BaseActivity extends ActionBarActivity implements android.
     }
 
     public boolean onQueryTextSubmit(String query) {
+        searchView.clearFocus();
         return false;
     }
 

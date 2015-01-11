@@ -303,26 +303,32 @@ public class LoginActivity extends Activity {
                                     case 0:
                                         Log.d(TAG, "login successfully");
                                         loginStatus = true;
+                                        loginEmail = email;
+                                        saveLoginState();
+                                        Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
+                                        startActivity(intent);
+                                        overridePendingTransition(R.anim.right_to_left_in, R.anim.fade_out);
+                                        finish();
                                         break;
 
                                     case 1:
                                         Log.d(TAG, "logged in with temporary password");
+                                        SharedPreferences.Editor editor = getSharedPreferences(SplashScreen.PREFS_NAME, 0).edit();
+                                        editor.putBoolean("forceChangePassword", true).apply();
                                         loginStatus = true;
+                                        loginEmail = email;
+                                        saveLoginState();
+                                        Intent intent1 = new Intent(LoginActivity.this, ChangePasswordActivity.class);
+                                        startActivity(intent1);
+                                        overridePendingTransition(R.anim.right_to_left_in, R.anim.fade_out);
+                                        finish();
                                         break;
                                 }
 
-                                if (loginStatus) {
-                                    loginEmail = email;
-                                    saveLoginState();
-                                    Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
-                                    startActivity(intent);
-                                    overridePendingTransition(R.anim.right_to_left_in, R.anim.fade_out);
-                                    finish();
-                                } else {
+                                if (!loginStatus) {
                                     Log.e(TAG, "did not logged in successfully");
                                     throw new MyException(ErrorStatus.ACCESS_DENIED.getName(), ErrorStatus.ACCESS_DENIED.getErrorMessage());
                                 }
-
                                 if (progressDialog != null) {
                                     progressDialog.dismiss();
                                 }

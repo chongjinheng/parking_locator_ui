@@ -48,6 +48,7 @@ public class LocateVehicleActivity extends BaseActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        BaseActivity.needSearch = false;
         super.onCreate(savedInstanceState);
 
         Fragment fragment = LocateVehicleFragment.newInstance(R.layout.fragment_locate_vehicle);
@@ -63,6 +64,7 @@ public class LocateVehicleActivity extends BaseActivity {
         private AlertDialog errorDialog;
         private Lot lot;
         private ProgressDialog progressDialog;
+        private boolean unParked = false;
 
         public static LocateVehicleFragment newInstance(int layout) {
             LocateVehicleFragment classInstance = new LocateVehicleFragment();
@@ -96,89 +98,91 @@ public class LocateVehicleActivity extends BaseActivity {
                     } else if (event.getAction() == MotionEvent.ACTION_UP) {
 
                         navigateView.setBackgroundResource(R.drawable.bg_button_translucent);
-
-                        if (lot != null) {
-                            AlertDialog userConfirmation = new AlertDialog.Builder(getActivity()).create();
-                            userConfirmation.requestWindowFeature(Window.FEATURE_NO_TITLE);
-                            userConfirmation.setMessage("Are you sure you want to un-park your vehicle?");
-                            userConfirmation.setInverseBackgroundForced(true);
-                            userConfirmation.setButton(DialogInterface.BUTTON_POSITIVE, "Yes", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    AsyncTask<JSONDTO, Void, JSONDTO> unParkVehicle = new AsyncTask<JSONDTO, Void, JSONDTO>() {
-                                        @Override
-                                        protected void onPreExecute() {
-                                            progressDialog = MyProgressDialog.initiate(getActivity());
-                                            progressDialog.show();
-                                        }
-
-                                        @Override
-                                        protected JSONDTO doInBackground(JSONDTO... params) {
-                                            JSONDTO jsonFromServer;
-                                            try {
-                                                jsonFromServer = APIUtils.processAPICalls(params[0]);
-                                                return jsonFromServer;
-
-                                            } catch (MyException e) {
-                                                Log.e(TAG, e.getMessage());
-                                                JSONDTO returnDTO = new JSONDTO();
-                                                JSONError error = new JSONError(e.getError(), e.getMessage());
-                                                returnDTO.setError(error);
-                                                return returnDTO;
-                                            } catch (Exception e) {
-                                                JSONDTO returnDTO = new JSONDTO();
-                                                e.printStackTrace();
-                                                Log.e(TAG, "Exception occurred when calling API");
-                                                JSONError error = new JSONError(ErrorStatus.ACCESS_DENIED.getName(), ErrorStatus.ACCESS_DENIED.getErrorMessage());
-                                                returnDTO.setError(error);
-                                                return returnDTO;
+                        if (!unParked) {
+                            if (lot != null) {
+                                AlertDialog userConfirmation = new AlertDialog.Builder(getActivity()).create();
+                                userConfirmation.requestWindowFeature(Window.FEATURE_NO_TITLE);
+                                userConfirmation.setMessage("Are you sure you want to un-park your vehicle?");
+                                userConfirmation.setInverseBackgroundForced(true);
+                                userConfirmation.setButton(DialogInterface.BUTTON_POSITIVE, "Yes", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        AsyncTask<JSONDTO, Void, JSONDTO> unParkVehicle = new AsyncTask<JSONDTO, Void, JSONDTO>() {
+                                            @Override
+                                            protected void onPreExecute() {
+                                                progressDialog = MyProgressDialog.initiate(getActivity());
+                                                progressDialog.show();
                                             }
-                                        }
 
-                                        @Override
-                                        protected void onPostExecute(JSONDTO jsondto) {
-                                            if (jsondto != null) {
-                                                if (jsondto.isForceRepark()) {
-                                                    Toast.makeText(getActivity(), "Your vehicle is successfully un-parked from " + lot.getLotName(), Toast.LENGTH_SHORT).show();
-                                                    Uri uri = Uri.parse("geo:0,0?q=" + lot.getLatitude() + "," + lot.getLongitude());
-                                                    getActivity().startActivity(new Intent(Intent.ACTION_VIEW, uri));
+                                            @Override
+                                            protected JSONDTO doInBackground(JSONDTO... params) {
+                                                JSONDTO jsonFromServer;
+                                                try {
+                                                    jsonFromServer = APIUtils.processAPICalls(params[0]);
+                                                    return jsonFromServer;
+
+                                                } catch (MyException e) {
+                                                    Log.e(TAG, e.getMessage());
+                                                    JSONDTO returnDTO = new JSONDTO();
+                                                    JSONError error = new JSONError(e.getError(), e.getMessage());
+                                                    returnDTO.setError(error);
+                                                    return returnDTO;
+                                                } catch (Exception e) {
+                                                    JSONDTO returnDTO = new JSONDTO();
+                                                    e.printStackTrace();
+                                                    Log.e(TAG, "Exception occurred when calling API");
+                                                    JSONError error = new JSONError(ErrorStatus.ACCESS_DENIED.getName(), ErrorStatus.ACCESS_DENIED.getErrorMessage());
+                                                    returnDTO.setError(error);
+                                                    return returnDTO;
                                                 }
-                                            } else {
-                                                Log.e(TAG, "JSON is not returned");
-                                                showErrorDialog();
                                             }
-                                            if (progressDialog != null) {
-                                                progressDialog.dismiss();
+
+                                            @Override
+                                            protected void onPostExecute(JSONDTO jsondto) {
+                                                if (jsondto != null) {
+                                                    if (jsondto.isForceRepark()) {
+                                                        unParked = true;
+                                                        Toast.makeText(getActivity(), "Your vehicle is successfully un-parked from " + lot.getLotName(), Toast.LENGTH_SHORT).show();
+                                                        Uri uri = Uri.parse("geo:0,0?q=" + lot.getLatitude() + "," + lot.getLongitude());
+                                                        getActivity().startActivity(new Intent(Intent.ACTION_VIEW, uri));
+                                                    }
+                                                } else {
+                                                    Log.e(TAG, "JSON is not returned");
+                                                    showErrorDialog();
+                                                }
+                                                if (progressDialog != null) {
+                                                    progressDialog.dismiss();
+                                                }
                                             }
+                                        };
+
+                                        JSONDTO dataToProcess = new JSONDTO();
+                                        SharedPreferences settings = getActivity().getSharedPreferences(SplashScreen.PREFS_NAME, 0);
+                                        String userEmail = settings.getString("email", null);
+                                        if (userEmail != null) {
+                                            dataToProcess.setEmail(userEmail);
+                                            dataToProcess.setServiceName(APIUtils.REMOVE_VEHICLE);
                                         }
-                                    };
+                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                                            unParkVehicle.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, dataToProcess);
+                                        } else {
+                                            unParkVehicle.execute(dataToProcess);
+                                        }
 
-                                    JSONDTO dataToProcess = new JSONDTO();
-                                    SharedPreferences settings = getActivity().getSharedPreferences(SplashScreen.PREFS_NAME, 0);
-                                    String userEmail = settings.getString("email", null);
-                                    if (userEmail != null) {
-                                        dataToProcess.setEmail(userEmail);
-                                        dataToProcess.setServiceName(APIUtils.REMOVE_VEHICLE);
                                     }
-                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                                        unParkVehicle.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, dataToProcess);
-                                    } else {
-                                        unParkVehicle.execute(dataToProcess);
+                                });
+                                userConfirmation.setButton(DialogInterface.BUTTON_NEGATIVE, "No", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        //do nothing
                                     }
+                                });
+                                userConfirmation.show();
 
-                                }
-                            });
-                            userConfirmation.setButton(DialogInterface.BUTTON_NEGATIVE, "No", new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                    //do nothing
-                                }
-                            });
-                            userConfirmation.show();
-
-                        } else {
-                            Log.e(TAG, "Lot not found when trying to intent to navigation");
-                            showErrorDialog();
+                            } else {
+                                Log.e(TAG, "Lot not found when trying to intent to navigation");
+                                showErrorDialog();
+                            }
                         }
                     }
                     return true;

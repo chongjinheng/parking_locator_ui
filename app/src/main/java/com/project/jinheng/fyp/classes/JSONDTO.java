@@ -16,9 +16,14 @@ public class JSONDTO {
     private JSONError error;
 
     private Long ID;
-
     /**
-     * * Maps ***
+     * Change Password **
+     **/
+    private String oldPassword;
+    private boolean isForceChangePassword;
+
+
+     /** * Maps ***
      */
     private Double latitude;
     private Double longitude;
@@ -32,6 +37,26 @@ public class JSONDTO {
     private Slot slot;
     private Boolean alreadyParkedThere;
     private Boolean forceRepark;
+
+    public String getOldPassword() {
+        return oldPassword;
+    }
+
+    public void setOldPassword(String oldPassword) {
+        this.oldPassword = oldPassword;
+    }
+
+    public boolean isForceChangePassword() {
+        return isForceChangePassword;
+    }
+
+    public void setForceChangePassword(boolean isForceChangePassword) {
+        this.isForceChangePassword = isForceChangePassword;
+    }
+
+    public Boolean getForceRepark() {
+        return forceRepark;
+    }
 
     public Boolean getAlreadyParkedThere() {
         return alreadyParkedThere;
