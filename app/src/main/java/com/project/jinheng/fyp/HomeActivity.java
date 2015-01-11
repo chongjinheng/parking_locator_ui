@@ -122,31 +122,34 @@ public class HomeActivity extends BaseActivity {
                 @Override
                 protected GoogleNearbyPlaces doInBackground(String... params) {
                     try {
-                        String lat = String.valueOf(justToPassALocation.getLatitude());
-                        String lng = String.valueOf(justToPassALocation.getLongitude());
-                        String query = params[0].trim();
-                        query = query.replace(" ", "+");
-                        HttpGet httpGet = new HttpGet(APIUtils.PLACES_API_BASE + APIUtils.PLACES_API_TYPE_NEARBYSEARCH + "?location=" + lat + "," + lng + "&rankby=distance&name=" + query + APIUtils.PLACES_API_KEY);
-                        HttpClient client = new DefaultHttpClient();
+                        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+                        if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+                            String lat = String.valueOf(justToPassALocation.getLatitude());
+                            String lng = String.valueOf(justToPassALocation.getLongitude());
+                            String query = params[0].trim();
+                            query = query.replace(" ", "+");
+                            HttpGet httpGet = new HttpGet(APIUtils.PLACES_API_BASE + APIUtils.PLACES_API_TYPE_NEARBYSEARCH + "?location=" + lat + "," + lng + "&rankby=distance&name=" + query + APIUtils.PLACES_API_KEY);
+                            HttpClient client = new DefaultHttpClient();
 
-                        Log.d(TAG, "getting data from places API......");
-                        HttpResponse response;
+                            Log.d(TAG, "getting data from places API......");
+                            HttpResponse response;
 
-                        response = client.execute(httpGet);
-                        HttpEntity entity = response.getEntity();
-                        String data = EntityUtils.toString(entity);
-                        Log.d(TAG + "\nJSON sent from Google: ", data);
-                        GoogleNearbyPlaces returnedJSON = APIUtils.create().fromJson(data, GoogleNearbyPlaces.class);
-                        //result is returned
-                        if (returnedJSON.getStatus().equals("OK")) {
-                            return returnedJSON;
-                        } else if (returnedJSON.getStatus().equals("ZERO_RESULTS")) {
-                            //no result is returned
-                            return null;
-                        } else {
-                            //other codes
-                            throw new MyException(ErrorStatus.ACCESS_DENIED.getName(), ErrorStatus.ACCESS_DENIED.getErrorMessage());
+                            response = client.execute(httpGet);
+                            HttpEntity entity = response.getEntity();
+                            String data = EntityUtils.toString(entity);
+                            Log.d(TAG + "\nJSON sent from Google: ", data);
+                            GoogleNearbyPlaces returnedJSON = APIUtils.create().fromJson(data, GoogleNearbyPlaces.class);
+                            //result is returned
+                            if (returnedJSON.getStatus().equals("OK")) {
+                                return returnedJSON;
+                            } else if (returnedJSON.getStatus().equals("ZERO_RESULTS")) {
+                                //no result is returned
+                                return null;
+                            } else {
+                                //other codes
+                                throw new MyException(ErrorStatus.ACCESS_DENIED.getName(), ErrorStatus.ACCESS_DENIED.getErrorMessage());
 
+                            }
                         }
                     } catch (MyException e) {
                         Log.e(TAG, "Unexpected error");
@@ -680,7 +683,6 @@ public class HomeActivity extends BaseActivity {
                                                                  if (userEmail == null) {
                                                                      Log.e(TAG, "Abnormal behavior, user email does not exist");
                                                                  }
-                                                                 //to be saved in db
                                                                  Slot parkedSlot = new Slot();
                                                                  parkedSlot.setStatus("U");
                                                                  parkedSlot.setParkTime(parkedTime);
@@ -928,17 +930,19 @@ public class HomeActivity extends BaseActivity {
                                                                              //logic to check whether parking is open now
                                                                              //convert to 12 hour format
 
-                                                                             if (closeHour - openingHour >= 0) {
-                                                                                 if (hourNow <= closeHour && hourNow > openingHour) {
+                                                                             //in the same day
+                                                                             if (closeHour > openingHour) {
+                                                                                 if (hourNow >= openingHour && hourNow < closeHour) {
                                                                                      open = true;
                                                                                  }
-                                                                             } else if (closeHour - openingHour < 0) {
-                                                                                 if (hourNow > closeHour && hourNow <= openingHour) {
+                                                                             } else {
+                                                                                 //between different day
+                                                                                 if (hourNow < 24 && hourNow > 1 && hourNow >= openingHour) {
+                                                                                     open = true;
+                                                                                 } else if (hourNow >= 0 && hourNow <= closeHour) {
                                                                                      open = true;
                                                                                  }
-                                                                             } else
-                                                                                 open = false;
-
+                                                                             }
                                                                          } else {
                                                                              unknown = true;
                                                                          }
