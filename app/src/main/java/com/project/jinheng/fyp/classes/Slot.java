@@ -11,7 +11,9 @@ public class Slot {
 
     private Long slotID;
 
-    private Integer floorLevel;
+    private String floorLevel;
+
+    private String position;
 
     private Date parkTime;
 
@@ -21,6 +23,14 @@ public class Slot {
 
     private Lot lot;
 
+    public String getPosition() {
+        return position;
+    }
+
+    public void setPosition(String position) {
+        this.position = position;
+    }
+
     public Long getSlotID() {
         return slotID;
     }
@@ -29,11 +39,11 @@ public class Slot {
         this.slotID = slotID;
     }
 
-    public Integer getFloorLevel() {
+    public String getFloorLevel() {
         return floorLevel;
     }
 
-    public void setFloorLevel(Integer floorLevel) {
+    public void setFloorLevel(String floorLevel) {
         this.floorLevel = floorLevel;
     }
 

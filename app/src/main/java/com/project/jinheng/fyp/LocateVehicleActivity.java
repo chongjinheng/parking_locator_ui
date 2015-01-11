@@ -63,6 +63,7 @@ public class LocateVehicleActivity extends BaseActivity {
         private GoogleMap map;
         private AlertDialog errorDialog;
         private Lot lot;
+        private Slot slot;
         private ProgressDialog progressDialog;
         private boolean unParked = false;
 
@@ -196,10 +197,8 @@ public class LocateVehicleActivity extends BaseActivity {
         }
 
         private void initializeInterface(View view) {
-            //TODO this is temporary
             String json = getActivity().getIntent().getStringExtra("vehicleDetails");
             JSONDTO jsonFromServer = (JSONDTO) APIUtils.fromJSON(json, JSONDTO.class);
-            Slot slot = new Slot();
             if (jsonFromServer.getSlot() != null) {
                 slot = jsonFromServer.getSlot();
                 lot = slot.getLot();
@@ -227,6 +226,10 @@ public class LocateVehicleActivity extends BaseActivity {
             TextView address = (TextView) view.findViewById(R.id.vehicle_lot_address);
             TextView parkingPrice = (TextView) view.findViewById(R.id.detail_vehicle_price);
             TextView timeParked = (TextView) view.findViewById(R.id.detail_vehicle_parked_time);
+            TextView floorTitle = (TextView) view.findViewById(R.id.detail_vehicle_floor_title);
+            TextView floor = (TextView) view.findViewById(R.id.detail_vehicle_floor);
+            TextView positionTitle = (TextView) view.findViewById(R.id.detail_vehicle_position_title);
+            TextView position = (TextView) view.findViewById(R.id.detail_vehicle_position);
 
             if (lot != null) {
                 if (lot.getLotName() != null || lot.getAddress() != null) {
@@ -255,6 +258,14 @@ public class LocateVehicleActivity extends BaseActivity {
                     }
                     parkingPrice.setText(output);
                     timeParked.setText(elapsedHours + " Hours");
+
+                    if (slot.getFloorLevel() != null || slot.getPosition() != null) {
+                        floorTitle.setVisibility(View.VISIBLE);
+                        positionTitle.setVisibility(View.VISIBLE);
+                        floor.setText(slot.getFloorLevel());
+                        position.setText(slot.getPosition());
+                    }
+
                 } else {
                     Log.e(TAG, "Unable to get lot name and price from intent");
                     showErrorDialog();

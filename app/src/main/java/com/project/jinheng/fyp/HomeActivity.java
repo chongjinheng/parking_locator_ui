@@ -328,6 +328,10 @@ public class HomeActivity extends BaseActivity {
                     } else if (location != null) {
                         map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 15.0f));
 
+                        if (parkHereButton.getVisibility() == View.VISIBLE) {
+                            parkHereButton.setVisibility(View.INVISIBLE);
+                            parkHereText.setVisibility(View.INVISIBLE);
+                        }
                         if (currentMarker != null) {
                             currentMarker.hideInfoWindow();
                         } else {
@@ -509,8 +513,17 @@ public class HomeActivity extends BaseActivity {
 
                                                  if (location != null) {
 
-                                                     //ask user wanna park or not if current marker is near user
-                                                     if (APIUtils.calculateDistance(location.getLatitude(), location.getLongitude(), marker.getPosition().latitude, marker.getPosition().longitude, "M") <= 0.2) {
+                                                     //ask user wanna park or not if current marker is near user and when it is open
+                                                     Lot lot = parkingLots.get(Integer.valueOf(marker.getSnippet()));
+                                                     boolean opened;
+                                                     if (lot.getOperationHour().equals("24 Hour")) {
+                                                         opened = true;
+                                                     } else {
+                                                         opened = isParkingOpened(lot.getOpenHour(), lot.getCloseHour());
+                                                     }
+
+                                                     //calculate distance and enable the button
+                                                     if (APIUtils.calculateDistance(location.getLatitude(), location.getLongitude(), marker.getPosition().latitude, marker.getPosition().longitude, "M") <= 0.2 && opened) {
                                                          parkHereText.setVisibility(View.VISIBLE);
                                                          parkHereButton.setVisibility(View.VISIBLE);
                                                          parkHereButton.setOnClickListener(new View.OnClickListener() {
@@ -553,6 +566,8 @@ public class HomeActivity extends BaseActivity {
                                                                              if (jsondto.getError() != null) {
                                                                                  throw new MyException(jsondto.getError().getCode(), jsondto.getError().getMessage());
                                                                              }
+                                                                             SharedPreferences.Editor editor = getActivity().getSharedPreferences(SplashScreen.PREFS_NAME, 0).edit();
+                                                                             editor.putBoolean("parked", true).apply();
                                                                              Toast.makeText(getActivity(), "OK! Your vehicle is now parked in " + marker.getTitle(), Toast.LENGTH_SHORT).show();
                                                                              if (progressDialog != null) {
                                                                                  progressDialog.dismiss();
@@ -610,6 +625,8 @@ public class HomeActivity extends BaseActivity {
                                                                              } else {
                                                                                  parkHereButton.setVisibility(View.INVISIBLE);
                                                                                  parkHereText.setVisibility(View.INVISIBLE);
+                                                                                 SharedPreferences.Editor editor = getActivity().getSharedPreferences(SplashScreen.PREFS_NAME, 0).edit();
+                                                                                 editor.putBoolean("parked", true).apply();
                                                                                  Toast.makeText(getActivity(), "OK! Your vehicle is now parked in " + marker.getTitle(), Toast.LENGTH_SHORT).show();
                                                                              }
                                                                              if (progressDialog != null) {
@@ -914,35 +931,11 @@ public class HomeActivity extends BaseActivity {
                                                                          }
 
                                                                          //set image according to opening hour
-                                                                         int openingHour;
-                                                                         int closeHour;
-                                                                         int hourNow;
                                                                          boolean open = false; //to indicate parking open or close
-                                                                         boolean unknown = false; //for unknow operating time
+                                                                         boolean unknown = false; //for unknown operating time
 
-                                                                         if (lot.getOpenHour() != 0 || lot.getCloseHour() != 0) {
-                                                                             openingHour = lot.getOpenHour();
-                                                                             closeHour = lot.getCloseHour();
-
-                                                                             Calendar timeNow = Calendar.getInstance();
-                                                                             hourNow = timeNow.get(Calendar.HOUR_OF_DAY);
-
-                                                                             //logic to check whether parking is open now
-                                                                             //convert to 12 hour format
-
-                                                                             //in the same day
-                                                                             if (closeHour > openingHour) {
-                                                                                 if (hourNow >= openingHour && hourNow < closeHour) {
-                                                                                     open = true;
-                                                                                 }
-                                                                             } else {
-                                                                                 //between different day
-                                                                                 if (hourNow < 24 && hourNow > 1 && hourNow >= openingHour) {
-                                                                                     open = true;
-                                                                                 } else if (hourNow >= 0 && hourNow <= closeHour) {
-                                                                                     open = true;
-                                                                                 }
-                                                                             }
+                                                                         if (lot.getOpenHour() != null || lot.getCloseHour() != null) {
+                                                                             open = isParkingOpened(lot.getOpenHour(), lot.getCloseHour());
                                                                          } else {
                                                                              unknown = true;
                                                                          }
@@ -1120,6 +1113,30 @@ public class HomeActivity extends BaseActivity {
                     m.remove();
                 }
             }
+        }
+
+        private boolean isParkingOpened(Integer openHour, Integer closeHour) {
+            int hourNow;
+            Calendar timeNow = Calendar.getInstance();
+            hourNow = timeNow.get(Calendar.HOUR_OF_DAY);
+
+            //logic to check whether parking is open now
+            //convert to 12 hour format
+
+            //in the same day
+            if (closeHour > openHour) {
+                if (hourNow >= openHour && hourNow < closeHour) {
+                    return true;
+                }
+            } else {
+                //between different day
+                if (hourNow < 24 && hourNow > 1 && hourNow >= openHour) {
+                    return true;
+                } else if (hourNow >= 0 && hourNow <= closeHour) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         private void showErrorDialog(MyException e) {
