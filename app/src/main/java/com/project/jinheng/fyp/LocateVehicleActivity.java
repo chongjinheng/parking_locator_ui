@@ -27,6 +27,7 @@ import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.melnykov.fab.FloatingActionButton;
 import com.project.jinheng.fyp.classes.APIUtils;
 import com.project.jinheng.fyp.classes.ErrorStatus;
 import com.project.jinheng.fyp.classes.JSONDTO;
@@ -57,6 +58,12 @@ public class LocateVehicleActivity extends BaseActivity {
         fragmentTransaction.commit();
     }
 
+    @Override
+    public void onBackPressed() {
+        BaseActivity.needSearch = true;
+        super.onBackPressed();
+    }
+
     public static class LocateVehicleFragment extends Fragment {
 
         private static final String TAG = "LocateVehicleFragment";
@@ -65,6 +72,8 @@ public class LocateVehicleActivity extends BaseActivity {
         private Lot lot;
         private Slot slot;
         private ProgressDialog progressDialog;
+        private FloatingActionButton qrButton;
+        private TextView qrDesc;
         private boolean unParked = false;
 
         public static LocateVehicleFragment newInstance(int layout) {
@@ -78,6 +87,9 @@ public class LocateVehicleActivity extends BaseActivity {
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
             View view = inflater.inflate(getArguments().getInt("layout"), container, false);
+
+            qrButton = (FloatingActionButton) view.findViewById(R.id.button_qr);
+            qrDesc = (TextView) view.findViewById(R.id.button_qr_desc);
 
             if (map == null) {
                 map = ((MapFragment) getFragmentManager().findFragmentById(R.id.vehicle_detail_map)).getMap();
@@ -146,6 +158,8 @@ public class LocateVehicleActivity extends BaseActivity {
                                                         Toast.makeText(getActivity(), "Your vehicle is successfully un-parked from " + lot.getLotName(), Toast.LENGTH_SHORT).show();
                                                         Uri uri = Uri.parse("geo:0,0?q=" + lot.getLatitude() + "," + lot.getLongitude());
                                                         getActivity().startActivity(new Intent(Intent.ACTION_VIEW, uri));
+                                                        getActivity().finish();
+                                                        BaseActivity.needSearch = true;
                                                     }
                                                 } else {
                                                     Log.e(TAG, "JSON is not returned");
@@ -189,6 +203,20 @@ public class LocateVehicleActivity extends BaseActivity {
                     return true;
                 }
             };
+
+            //onclick listener of qr scan button
+            qrButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (!unParked) {
+                        Intent intent = new Intent(getActivity(), QRActivity.class);
+                        intent.putExtra("slot", APIUtils.toJson(slot));
+                        startActivity(intent);
+                        getActivity().finish();
+                        BaseActivity.needSearch = true;
+                    }
+                }
+            });
 
             navigateButton.setOnTouchListener(myTouchListener);
             navigateView.setOnTouchListener(myTouchListener);
@@ -264,6 +292,11 @@ public class LocateVehicleActivity extends BaseActivity {
                         positionTitle.setVisibility(View.VISIBLE);
                         floor.setText(slot.getFloorLevel());
                         position.setText(slot.getPosition());
+                    } else {
+                        if (!slot.getLot().getLotType().equals("O")) {
+                            qrButton.setVisibility(View.VISIBLE);
+                            qrDesc.setVisibility(View.VISIBLE);
+                        }
                     }
 
                 } else {

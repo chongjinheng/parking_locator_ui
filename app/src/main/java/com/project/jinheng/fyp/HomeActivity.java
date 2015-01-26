@@ -95,6 +95,7 @@ public class HomeActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         BaseActivity.needSearch = true;
+
         super.onCreate(savedInstanceState);
         Fragment fragment = HomeFragment.newInstance(R.layout.fragment_home);
         FragmentTransaction fragmentTransaction = getFragmentManager().beginTransaction();

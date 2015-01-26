@@ -19,6 +19,14 @@ android {
     }
 }
 
+repositories {
+    mavenCentral()
+
+    maven {
+        url "http://maven.livotovlabs.pro/content/groups/public"
+    }
+}
+
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.melnykov:floatingactionbutton:1.0.6'
@@ -31,4 +39,5 @@ dependencies {
     compile 'com.google.code.gson:gson:2.2.4'
     compile 'com.squareup.picasso:picasso:2.4.0'
     compile 'org.apache.directory.studio:org.apache.commons.lang:2.6'
+    compile('eu.livotov.labs:zxscanlib:2.0.0-SNAPSHOT@aar') { transitive = true }
 }

@@ -58,6 +58,7 @@ public class LotDetailActivity extends BaseActivity {
     @Override
     public void onBackPressed() {
         super.onBackPressed();
+        BaseActivity.needSearch = true;
         overridePendingTransition(R.anim.fade_in, R.anim.top_to_bottom_in);
     }
 

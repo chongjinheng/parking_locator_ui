@@ -26,9 +26,9 @@
     <color name="purple_darker">#4527a0</color>
     <color name="purple_dark">#512da8</color>
     <color name="purple_light">#D1C4E9</color>
-    <color name="purple_main">#673AB7</color>
+    <color name="purple_main">#CC673AB7</color>
     <color name="orange">#FF9800</color>
-    <color name="red_main">#f44336</color>
+    <color name="red_main">#CCf44336</color>
     <color name="red_error">#FFCDD2</color>
     <color name="red_light">#ffcdd2</color>
 

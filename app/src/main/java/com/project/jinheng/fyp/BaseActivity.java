@@ -41,7 +41,7 @@ public abstract class BaseActivity extends ActionBarActivity implements android.
 
     //declared global as need to use in multiple methods
     public static boolean drawerOpen = false;
-    public static boolean needSearch = false;
+    public static boolean needSearch = true;
 
     private Toolbar toolbar;
     private DrawerLayout drawerLayout;

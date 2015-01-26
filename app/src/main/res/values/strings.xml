@@ -54,6 +54,7 @@
     <string name="amount_payable">Amount Payable</string>
     <string name="floor">Floor</string>
     <string name="position">Position</string>
+    <string name="qr">Scan QR code beside your slot to save your current location</string>
     <!--Settings-->
     <string name="developed_by">Developed by: Chong Jin Heng\nDesigned by: Chong Jin Heng\n\nSupervised by: Mr Tong Hau Lee\nModerated by: Mr Tong Gee Kok</string>
     <string name="developed_for">Developed for Multimedia University \nFinal Year Project \'2015</string>
