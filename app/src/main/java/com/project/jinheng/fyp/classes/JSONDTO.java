@@ -14,13 +14,14 @@ public class JSONDTO {
     private String password;
     private Integer loginMode;
     private JSONError error;
+    private String feedback;
 
     private Long ID;
     /**
      * Change Password **
      */
     private String oldPassword;
-    private boolean isForceChangePassword;
+    private Boolean isForceChangePassword;
 
     /**
      * Maps ***
@@ -38,6 +39,14 @@ public class JSONDTO {
     private Boolean alreadyParkedThere;
     private Boolean forceRepark;
     private Boolean slotUpdated;
+
+    public String getFeedback() {
+        return feedback;
+    }
+
+    public void setFeedback(String feedback) {
+        this.feedback = feedback;
+    }
 
     public Boolean isSlotUpdated() {
         return slotUpdated;

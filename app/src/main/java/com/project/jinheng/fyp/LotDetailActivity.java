@@ -146,6 +146,16 @@ public class LotDetailActivity extends BaseActivity {
             navigateButton.setOnTouchListener(myTouchListener);
             navigateView.setOnTouchListener(myTouchListener);
 
+            TextView feedback = (TextView) view.findViewById(R.id.detail_lot_requestedit);
+            feedback.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(getActivity(), RequestEdit.class);
+                    startActivity(intent);
+                    getActivity().overridePendingTransition(R.anim.bottom_to_top_in, R.anim.fade_out);
+                }
+            });
+
             return view;
         }
 
@@ -208,7 +218,6 @@ public class LotDetailActivity extends BaseActivity {
                 nearbyAttraction.setText(lot.getNearbyAttraction());
 
                 DecimalFormat formatter = new DecimalFormat("RM ###.00");
-                //TODO price type
                 String output = null;
                 switch (lot.getPrice().getPriceType()) {
                     case "FLAT":

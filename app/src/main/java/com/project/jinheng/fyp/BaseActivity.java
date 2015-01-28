@@ -18,6 +18,7 @@ import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
@@ -193,30 +194,45 @@ public abstract class BaseActivity extends ActionBarActivity implements android.
         }
     }
 
-    public void logoutButtonClicked(Context context) {
-        Session session = Session.getActiveSession();
-        if (session != null) {
-            if (!session.isClosed()) {
-                session.closeAndClearTokenInformation();
+    public void logoutButtonClicked(final Context context) {
+        AlertDialog logoutConfirmation = new AlertDialog.Builder(BaseActivity.this).create();
+        logoutConfirmation.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        logoutConfirmation.setInverseBackgroundForced(true);
+        logoutConfirmation.setMessage("Are you sure you want to log out?");
+        logoutConfirmation.setButton(DialogInterface.BUTTON_POSITIVE, "Yes", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Session session = Session.getActiveSession();
+                if (session != null) {
+                    if (!session.isClosed()) {
+                        session.closeAndClearTokenInformation();
+                    }
+                } else {
+                    session = new Session(context);
+                    Session.setActiveSession(session);
+                    session.closeAndClearTokenInformation();
+                }
+
+                SharedPreferences setting = getSharedPreferences(SplashScreen.PREFS_NAME, Context.MODE_PRIVATE);
+                setting.edit().remove("LoggedIn").clear().apply();
+                finish();
+
+                Intent intent = new Intent(BaseActivity.this, SplashScreen.class);
+                startActivity(intent);
             }
-        } else {
-            session = new Session(context);
-            Session.setActiveSession(session);
-            session.closeAndClearTokenInformation();
-        }
+        });
+        logoutConfirmation.setButton(DialogInterface.BUTTON_NEGATIVE, "No", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+            }
+        });
+        logoutConfirmation.show();
 
-        SharedPreferences setting = getSharedPreferences(SplashScreen.PREFS_NAME, Context.MODE_PRIVATE);
-        setting.edit().remove("LoggedIn").clear().apply();
-        finish();
-
-        Intent intent = new Intent(this, SplashScreen.class);
-        startActivity(intent);
     }
 
     public void initializeDrawerItem() {
 
         List<Item> items = new ArrayList<>();
-        //hardcoded name TODO
         SharedPreferences settings = getSharedPreferences(SplashScreen.PREFS_NAME, 0);
         boolean loggedInWithFacebook = settings.getBoolean("facebookLog", false);
         if (loggedInWithFacebook) {

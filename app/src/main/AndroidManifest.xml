@@ -54,6 +54,11 @@
             android:screenOrientation="portrait"
             android:label="@string/settings_main"/>
 
+        <activity
+            android:name=".RequestEdit"
+            android:screenOrientation="portrait"
+            android:label="@string/feedback"/>
+
 
         <activity
             android:name=".SettingMain"

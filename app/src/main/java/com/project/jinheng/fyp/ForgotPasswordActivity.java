@@ -154,7 +154,7 @@ public class ForgotPasswordActivity extends Activity {
                             AlertDialog fpSuccess = new AlertDialog.Builder(ForgotPasswordActivity.this).create();
                             fpSuccess.setCancelable(false);
                             fpSuccess.setTitle("Password reset");
-                            fpSuccess.setMessage("Password reset Successfully!\nYou will receive an email soon.");
+                            fpSuccess.setMessage("Password reset Successfully!\nYou will receive an email with your temporary pin soon.");
                             fpSuccess.setCancelable(false);
                             fpSuccess.setButton(DialogInterface.BUTTON_NEUTRAL, "OK", new DialogInterface.OnClickListener() {
                                 @Override
@@ -164,6 +164,7 @@ public class ForgotPasswordActivity extends Activity {
                                     overridePendingTransition(R.anim.fade_in, R.anim.top_to_bottom_in);
                                 }
                             });
+                            fpSuccess.show();
 
                         }
                     }

@@ -54,6 +54,7 @@ public class APIUtils {
     public static final String FORGOT_PASSWORD = "FORGOT_PASSWORD";
     public static final String CHANGE_PASSWORD = "CHANGE_PASSWORD";
     public static final String QR_SCANNED = "QR_SCANNED";
+    public static final String SEND_FEEDBACK = "SEND_FEEDBACK";
 
     public static String facebookPrintKeyHash(Activity context) {
         PackageInfo packageInfo;
@@ -108,7 +109,6 @@ public class APIUtils {
                         Base64.DEFAULT));
             }
         } catch (PackageManager.NameNotFoundException | NoSuchAlgorithmException e) {
-            //TODO handle it
             e.printStackTrace();
         }
 

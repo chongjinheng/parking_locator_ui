@@ -142,7 +142,6 @@ public class RegisterActivity extends Activity {
     }
 
     public void registerButtonClicked(View view) {
-        //TODO db register api call here
         boolean inputCorrect = false;
 
         //check if there are any errors
@@ -214,6 +213,8 @@ public class RegisterActivity extends Activity {
                                 //register success
                                 SharedPreferences settings = getSharedPreferences(SplashScreen.PREFS_NAME, 0);
                                 SharedPreferences.Editor editor = settings.edit();
+
+                                editor.putBoolean("facebookLog", false);
                                 editor.putString("email", jsondto.getEmail().trim());
                                 String[] splitEmail = jsondto.getEmail().trim().split("@");
                                 String name = splitEmail[0];
@@ -253,11 +254,12 @@ public class RegisterActivity extends Activity {
         registerDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         registerDialog.setInverseBackgroundForced(true);
         if (success) {
-            registerDialog.setMessage("Congratulations! \nYou have registered successfully.");
+            registerDialog.setMessage("Congratulations! \nYou have registered successfully.\n\nA confirmation will be sent to you shortly.");
             registerDialog.setButton(DialogInterface.BUTTON_NEUTRAL, "OK", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     Intent intent = new Intent(RegisterActivity.this, HomeActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                     startActivity(intent);
                     overridePendingTransition(R.anim.fade_in, R.anim.top_to_bottom_in);
                     finish();
