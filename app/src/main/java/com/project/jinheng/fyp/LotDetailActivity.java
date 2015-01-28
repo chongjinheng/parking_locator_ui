@@ -224,10 +224,10 @@ public class LotDetailActivity extends BaseActivity {
                         output = "Flat Rate " + formatter.format(Double.valueOf(lot.getPrice().getFlatRate()) / 100);
                         break;
                     case "DYNAMIC":
-                        output = "First Hour: " + formatter.format(Double.valueOf(lot.getPrice().getFirstHour()) / 100) + "       Subsequent Hour: " + formatter.format(Double.valueOf(lot.getPrice().getSubsHour()));
+                        output = "First Hour : " + formatter.format(Double.valueOf(lot.getPrice().getFirstHour()) / 100) + "\nSubs Hour: " + formatter.format(Double.valueOf(lot.getPrice().getSubsHour()) / 100);
                         break;
                     case "RATE":
-                        output = "First Hour: " + formatter.format(Double.valueOf(lot.getPrice().getFirstHour()) / 100) + "       Subsequent Hour: " + formatter.format(Double.valueOf(lot.getPrice().getSubsHour()));
+                        output = "First Hour : " + formatter.format(Double.valueOf(lot.getPrice().getFirstHour()) / 100) + "\nSubs Hour: " + formatter.format(Double.valueOf(lot.getPrice().getSubsHour()) / 100);
                         break;
                     default:
                         Log.e(TAG, "Price type not defined");
