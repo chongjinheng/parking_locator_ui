@@ -3,6 +3,7 @@ package com.project.jinheng.fyp;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -11,6 +12,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.PersistableBundle;
+import android.support.v4.content.IntentCompat;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -176,6 +178,8 @@ public class ChangePasswordActivity extends Activity {
                             if (jsondto.getError() != null) {
                                 throw new MyException(jsondto.getError().getCode(), jsondto.getError().getMessage());
                             } else {
+                                SharedPreferences.Editor editor = getSharedPreferences(SplashScreen.PREFS_NAME,0).edit();
+                                editor.putBoolean("LoggedIn",true).apply();
                                 AlertDialog cpSuccess = new AlertDialog.Builder(ChangePasswordActivity.this).create();
                                 cpSuccess.setCancelable(false);
                                 cpSuccess.setTitle("Password Changed");
@@ -185,8 +189,11 @@ public class ChangePasswordActivity extends Activity {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
                                         Intent intent = new Intent(ChangePasswordActivity.this, HomeActivity.class);
-                                        startActivity(intent);
+                                        ComponentName cn = intent.getComponent();
+                                        Intent clearTopIntent = IntentCompat.makeRestartActivityTask(cn);
+                                        startActivity(clearTopIntent);
                                         overridePendingTransition(R.anim.fade_in, R.anim.top_to_bottom_in);
+                                        finish();
                                         SharedPreferences.Editor editor = settings.edit();
                                         editor.remove("forceChangePassword").apply();
                                     }

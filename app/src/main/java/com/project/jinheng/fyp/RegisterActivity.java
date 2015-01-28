@@ -3,6 +3,7 @@ package com.project.jinheng.fyp;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -15,6 +16,7 @@ import android.nfc.Tag;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.content.IntentCompat;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
@@ -214,6 +216,7 @@ public class RegisterActivity extends Activity {
                                 SharedPreferences settings = getSharedPreferences(SplashScreen.PREFS_NAME, 0);
                                 SharedPreferences.Editor editor = settings.edit();
 
+                                editor.putBoolean("LoggedIn",true);
                                 editor.putBoolean("facebookLog", false);
                                 editor.putString("email", jsondto.getEmail().trim());
                                 String[] splitEmail = jsondto.getEmail().trim().split("@");
@@ -259,8 +262,9 @@ public class RegisterActivity extends Activity {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     Intent intent = new Intent(RegisterActivity.this, HomeActivity.class);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                    startActivity(intent);
+                    ComponentName cn = intent.getComponent();
+                    Intent clearTopIntent = IntentCompat.makeRestartActivityTask(cn);
+                    startActivity(clearTopIntent);
                     overridePendingTransition(R.anim.fade_in, R.anim.top_to_bottom_in);
                     finish();
                 }

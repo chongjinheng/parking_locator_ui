@@ -5,6 +5,7 @@
       <module fileurl="file://$PROJECT_DIR$/FYP.iml" filepath="$PROJECT_DIR$/FYP.iml" />
       <module fileurl="file://$PROJECT_DIR$/libs/MaterialDesign/MaterialDesign.iml" filepath="$PROJECT_DIR$/libs/MaterialDesign/MaterialDesign.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/parking_locator_ui.iml" filepath="$PROJECT_DIR$/parking_locator_ui.iml" />
     </modules>
   </component>
 </project>

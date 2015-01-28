@@ -38,7 +38,7 @@ import java.util.concurrent.TimeoutException;
 public class APIUtils {
 
     private static String TAG = "API";
-    public static final String APIURL = "http://192.168.1.2:8080/";
+    public static final String APIURL = "http://192.168.1.9:8080/";
     public static final String PLACES_API_BASE = "https://maps.googleapis.com/maps/api/place";
     public static final String PLACES_API_TYPE_NEARBYSEARCH = "/nearbysearch/json";
     public static final String PLACES_API_KEY = "&key=AIzaSyByNl5n2fXo3Q-_pYbI_gnJU1EjzBW3jxc";

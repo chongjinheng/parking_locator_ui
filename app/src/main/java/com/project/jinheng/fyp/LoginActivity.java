@@ -444,6 +444,7 @@ public class LoginActivity extends Activity {
         AlertDialog error = new AlertDialog.Builder(LoginActivity.this).create();
         error.setTitle(e.getError());
         error.setMessage(e.getMessage());
+        error.requestWindowFeature(Window.FEATURE_NO_TITLE);
         error.setInverseBackgroundForced(true);
         error.setButton(DialogInterface.BUTTON_NEUTRAL, "OK", new DialogInterface.OnClickListener() {
             @Override
